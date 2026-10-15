@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field-test circuit simulator</title>
+<style>
+:root{
+  --bg:#f4f3ee; --panel:#ffffff; --ink:#1b2226; --muted:#5b6670; --line:#d8d5cb;
+  --accent:#17607d; --accent-ink:#ffffff; --ok:#1a7a3c; --bad:#b3261e; --warn:#9a5b00;
+  --stage:#eef2f1; --stage-line:#dbe3e1; --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --mon-bg:#101418; --mon-ink:#bfe9c9; --chip:#eceae2;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#13171a; --panel:#1b2125; --ink:#e7ecee; --muted:#9aa6ae; --line:#2e373d;
+    --accent:#58b3d4; --accent-ink:#0b1418; --ok:#4cc27a; --bad:#ff7b72; --warn:#e3a008;
+    --stage:#20282c; --stage-line:#2a3439; --chip:#262e33;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,"Segoe UI",Roboto,sans-serif}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+h1{font-size:17px;margin:0;font-weight:650}
+.sub{color:var(--muted);font-size:12.5px}
+.badge{font-size:11.5px;border:1px solid var(--warn);color:var(--warn);border-radius:99px;padding:1px 9px;white-space:nowrap}
+.bar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-left:auto}
+.bar label{font-size:12px;color:var(--muted);display:flex;gap:5px;align-items:center}
+button,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:5px 10px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled,select:disabled{opacity:.5;cursor:not-allowed}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.on{outline:2px solid var(--accent);outline-offset:-1px}
+button.danger{border-color:var(--bad);color:var(--bad)}
+.clock{font-family:var(--mono);font-size:13px;background:var(--chip);border-radius:6px;padding:3px 8px}
+nav.tabs{display:flex;gap:2px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:9px 12px;white-space:nowrap;color:var(--muted)}
+nav.tabs button.sel{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+main{padding:16px;max-width:1500px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.card h3{margin:0 0 8px;font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-weight:650}
+.rig{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:16px;align-items:start}
+@media (max-width:1120px){.rig{grid-template-columns:1fr}}
+.stagewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--stage)}
+svg.board{display:block;width:100%;min-width:780px;height:auto;user-select:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.hint{font-size:12.5px;color:var(--muted);min-height:20px;margin:6px 2px 0;font-family:var(--mono)}
+.hit{fill:transparent;stroke:none;pointer-events:all}
+.hit.hl{stroke:#00a6d6;stroke-width:2}
+.hit:hover{stroke:#ff9f1c;stroke-width:2}
+.whit{fill:none;stroke:transparent;stroke-width:14;pointer-events:none;stroke-linecap:round}
+.phit{fill:transparent;pointer-events:none}
+.mode-cut .whit{pointer-events:stroke;cursor:pointer}
+.mode-part .phit{pointer-events:all;cursor:pointer}
+.mode-part .phit:hover{fill:rgba(255,159,28,.22)}
+.mode-cut .whit:hover{stroke:rgba(255,159,28,.45)}
+svg text{font-family:system-ui,"Segoe UI",sans-serif}
+.small{font-size:11px;fill:var(--muted)}
+.pin{font-size:7.6px;fill:#e9fbfb}
+.pulse{animation:pulse 0.7s ease-in-out infinite alternate}
+@keyframes pulse{from{opacity:.25}to{opacity:1}}
+.mon{background:var(--mon-bg);color:var(--mon-ink);font:11.5px/1.35 var(--mono);height:230px;overflow:auto;padding:8px;border-radius:7px;white-space:pre;margin:0}
+.mon .c{color:#8fa3b3}.mon .e{color:#ff9a8f}
+.lcd{font-family:var(--mono);font-size:30px;text-align:right;background:#c9d6bd;color:#1e2a17;border-radius:6px;padding:6px 10px;border:2px solid #7d8a73;min-height:52px}
+@media (prefers-color-scheme:dark){.lcd{background:#a9bc9a}}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.probe{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+.stat{font-size:13px}
+.stat table{width:100%;border-collapse:collapse}
+.stat td,.stat th{padding:3px 5px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+table.t{border-collapse:collapse;width:100%;font-size:13px}
+table.t th,table.t td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+table.t th{background:var(--chip);font-weight:600}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25)}
+canvas{width:100%;height:340px;display:block}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:900px){.cols2{grid-template-columns:1fr}}
+code,kbd{font-family:var(--mono);font-size:12.5px;background:var(--chip);padding:1px 5px;border-radius:4px}
+pre.code{background:var(--mon-bg);color:#d7e3ea;padding:12px;border-radius:8px;overflow:auto;font:12px/1.4 var(--mono);max-height:560px}
+ul.tight{margin:4px 0 0;padding-left:18px}ul.tight li{margin:3px 0}
+details summary{cursor:pointer;font-weight:600}
+.chk{display:flex;gap:6px;align-items:center;font-size:12.5px;padding:2px 0}
+.chk button{padding:0 6px;font-size:11px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;margin-top:6px}
+.note{font-size:12.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Field-test circuit simulator</h1>
+    <div class="sub">3 × Arduino Uno · 7 × DS18B20 · 2 × DS3231 · 3 × pull-up · breadboards</div>
+  </div>
+  <span class="badge" title="All temperatures here are generated by a toy model so you can see what the logger output looks like. They are not predictions or results.">Simulated data – not results</span>
+  <div class="bar">
+    <label>Start <select id="startSel"></select></label>
+    <label>Day layout <select id="layoutSel"></select></label>
+    <label>Speed <select id="speedSel"></select></label>
+    <button id="pauseBtn" disabled>Pause</button>
+    <button id="powerBtn" class="primary">Plug in USB</button>
+    <span class="clock" id="clock">--</span>
+  </div>
+</header>
+<nav class="tabs" id="tabs"></nav>
+<main id="main"></main>
+
+<script>
+'use strict';
+/* =========================================================================
+   Geometry
+   ========================================================================= */
+const P=16, W=1100, H=640;
+const BX=548, BY=150, AX=60, AY=140;
+const ROWY={a:80,b:96,c:112,d:128,e:144,f:176,g:192,h:208,i:224,j:240};
+const RAILY={'T+':16,'T-':32,'B+':288,'B-':304};
+const TOPPINS=['SCL','SDA','AREF','GNDt','D13','D12','D11','D10','D9','D8','D7','D6','D5','D4','D3','D2','D1','D0'];
+const PWRPINS=['NC','IOREF','RST','3V3','5V','GND1','GND2','VIN'];
+const ANAPINS=['A0','A1','A2','A3','A4','A5'];
+const ARD={};
+TOPPINS.forEach((n,i)=>ARD[n]=[AX+(7.3+i+(i>=10?1:0))*P, AY+20]);
+PWRPINS.forEach((n,i)=>ARD[n]=[AX+(8.3+i)*P, AY+316]);
+ANAPINS.forEach((n,i)=>ARD[n]=[AX+(17.3+i)*P, AY+316]);
+const ARDLABEL={GNDt:'GND',GND1:'GND',GND2:'GND',RST:'RST'};
+const RTCPINS={'32K':[436,540],'SQW':[452,540],'SCL':[468,540],'SDA':[484,540],'VCC':[500,540],'GND':[516,540]};
+
+function xyOf(id){
+  const [k,a,b]=id.split(':');
+  if(k==='h'){const m=/^(\d+)([a-j])$/.exec(a);return [BX+20+(m[1]-1)*P, BY+ROWY[m[2]]];}
+  if(k==='r') return [BX+20+(b-1)*P, BY+RAILY[a]];
+  if(k==='a') return ARD[a];
+  if(k==='rtc') return RTCPINS[a];
+  return null;
+}
+function descNode(id){
+  const [k,a,b]=id.split(':');
+  if(k==='h'){const m=/^(\d+)([a-j])$/.exec(a);return `breadboard column ${m[1]}, row ${m[2]}`;}
+  if(k==='r') return `${a[0]==='B'?'bottom':'top'} ${a[1]==='+'?'+ (red)':'− (blue)'} rail, column ${b}`;
+  if(k==='a') return 'Arduino '+(ARDLABEL[a]||a)+(a==='A4'?' (SDA)':a==='A5'?' (SCL)':'');
+  if(k==='rtc') return 'RTC module '+a;
+  return id;
+}
+
+/* =========================================================================
+   Netlist helpers
+   ========================================================================= */
+class UF{
+  constructor(){this.p=new Map()}
+  find(x){
+    if(!this.p.has(x)){this.p.set(x,x);return x}
+    let r=x; while(this.p.get(r)!==r) r=this.p.get(r);
+    let c=x; while(this.p.get(c)!==r){const n=this.p.get(c);this.p.set(c,r);c=n}
+    return r;
+  }
+  union(a,b){const ra=this.find(a),rb=this.find(b); if(ra!==rb) this.p.set(ra,rb)}
+}
+function sk(id){
+  if(id[0]==='h'&&id[1]===':'){const m=/^h:(\d+)([a-j])$/.exec(id);return 'S:'+m[1]+(m[2]<='e'?'T':'B');}
+  if(id.startsWith('r:')) return 'R:'+id.split(':')[1];
+  return id;
+}
+function solveLin(M,b){
+  const n=b.length;
+  for(let i=0;i<n;i++){
+    let p=i; for(let r=i+1;r<n;r++) if(Math.abs(M[r][i])>Math.abs(M[p][i])) p=r;
+    [M[i],M[p]]=[M[p],M[i]]; [b[i],b[p]]=[b[p],b[i]];
+    const d=M[i][i]; if(Math.abs(d)<1e-18) continue;
+    for(let r=i+1;r<n;r++){const f=M[r][i]/d; if(!f) continue; for(let c=i;c<n;c++) M[r][c]-=f*M[i][c]; b[r]-=f*b[i];}
+  }
+  const x=new Array(n).fill(0);
+  for(let i=n-1;i>=0;i--){let s=b[i]; for(let c=i+1;c<n;c++) s-=M[i][c]*x[c]; x[i]=Math.abs(M[i][i])<1e-18?0:s/M[i][i];}
+  return x;
+}
+function adjOf(edges){
+  const adj=new Map(), add=(a,b,g)=>{if(!adj.has(a))adj.set(a,[]);adj.get(a).push([b,g])};
+  edges.forEach(e=>{if(e.a===e.b)return;const g=1/e.R;add(e.a,e.b,g);add(e.b,e.a,g)});
+  return adj;
+}
+function nodalV(edges,src){
+  const adj=adjOf(edges), seen=new Set(src.keys()), q=[...src.keys()];
+  while(q.length){const n=q.pop();(adj.get(n)||[]).forEach(([o])=>{if(!seen.has(o)){seen.add(o);q.push(o)}})}
+  const unk=[...seen].filter(n=>!src.has(n)), idx=new Map(unk.map((n,i)=>[n,i]));
+  const M=unk.map(()=>unk.map(()=>0)), b=unk.map(()=>0);
+  unk.forEach((n,i)=>(adj.get(n)||[]).forEach(([o,g])=>{M[i][i]+=g; if(src.has(o)) b[i]+=g*src.get(o); else M[i][idx.get(o)]-=g;}));
+  const x=solveLin(M,b), V=new Map(src); unk.forEach((n,i)=>V.set(n,x[i]));
+  return V;
+}
+function reff(edges,u,v){
+  if(u===v) return 0;
+  const adj=adjOf(edges), seen=new Set([v]), q=[v];
+  while(q.length){const n=q.pop();(adj.get(n)||[]).forEach(([o])=>{if(!seen.has(o)){seen.add(o);q.push(o)}})}
+  if(!seen.has(u)) return Infinity;
+  const unk=[...seen].filter(n=>n!==v), idx=new Map(unk.map((n,i)=>[n,i]));
+  const M=unk.map(()=>unk.map(()=>0)), b=unk.map(()=>0); b[idx.get(u)]=1;
+  unk.forEach((n,i)=>(adj.get(n)||[]).forEach(([o,g])=>{M[i][i]+=g; if(o!==v) M[i][idx.get(o)]-=g;}));
+  return solveLin(M,b)[idx.get(u)];
+}
+
+/* =========================================================================
+   Project data
+   ========================================================================= */
+const TREAT={
+  A:{name:'A · bare',               tauB:8,  pcm:false},
+  B:{name:'B · sand',               tauB:22, pcm:false},
+  C:{name:'C · composite',          tauB:9,  pcm:true, tauBP:45, tauP:30},
+  D:{name:'D · composite + graphite',tauB:9, pcm:true, tauBP:12, tauP:9},
+};
+const GAIN=[1.00,1.03,0.98,1.01];                     // small panel-to-panel differences
+// global sensor list. kind: panel (back surface), amb (ambient), core (PCM container core)
+const SENS=[
+  {kind:'panel',panel:0,addr:'28FF1A6C41170452',off:-0.31},
+  {kind:'panel',panel:1,addr:'28FF7B2E54160391',off: 0.18},
+  {kind:'amb',          addr:'28FF93A8C3170188',off: 0.42},
+  {kind:'panel',panel:2,addr:'28FF4D0912180244',off:-0.12},
+  {kind:'core',treat:'C',addr:'28FFC51B6D14052F',off: 0.27},
+  {kind:'panel',panel:3,addr:'28FF08E7A1150376',off:-0.38},
+  {kind:'core',treat:'D',addr:'28FF6A33F2130419',off: 0.09},
+];
+const COLORS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf'];
+const RIGCFG=[
+  {cols:30,rtc:true, com:'COM-A',sensorIds:[0,1,2],board:'full-size board'},
+  {cols:30,rtc:true, com:'COM-B',sensorIds:[3,4],  board:'full-size board'},
+  {cols:17,rtc:false,com:'COM-C',sensorIds:[5,6],  board:'small board'},
+];
+const RES_ACTUAL=[4710,4670,4730];
+const BASE_DATE=Date.UTC(2026,9,12);
+
+const state={
+  tab:'rig0', rig:0, mode:'probe', dmm:'V', powered:false, paused:false, speed:60,
+  startH:6, layout:0, simT:0, acc:0
+};
+const phys={t:0,Tb:[0,0,0,0],Tp:[0,0,0,0]};
+const hist=SENS.map(()=>[]);
+const latest=SENS.map(()=>null);
+let RIGS=[];
+
+function treatOf(p){return 'ABCD'[(p+state.layout)%4]}
+function panelOfTreat(t){for(let p=0;p<4;p++) if(treatOf(p)===t) return p; return 0}
+function sname(g){
+  const s=SENS[g];
+  if(s.kind==='panel') return `P${s.panel+1} back (${TREAT[treatOf(s.panel)].name})`;
+  if(s.kind==='amb') return 'Ambient (shaded)';
+  return `PCM-${s.treat} core (on P${panelOfTreat(s.treat)+1})`;
+}
+function snameShort(g){
+  const s=SENS[g];
+  if(s.kind==='panel') return `P${s.panel+1} back`;
+  if(s.kind==='amb') return 'Ambient';
+  return `${s.treat} core`;
+}
+
+/* =========================================================================
+   Rig construction
+   ========================================================================= */
+function buildRig(cfg,n){
+  const rig={n,name:'Rig '+(n+1),cols:cfg.cols,hasRtc:cfg.rtc,com:cfg.com,board:cfg.board,sensorIds:cfg.sensorIds,
+    probe:{red:null,black:null,next:'red'},pending:null,flash:new Set(),
+    run:{booted:false,tripped:false,lines:[],found:[],rtcOk:false,next:0,bootT:0,txUntil:0}};
+  const c0s=cfg.cols>=30?[4,10,16]:[3,9,15];
+  rig.sensors=cfg.sensorIds.map((gid,j)=>{
+    const c0=c0s[j];
+    return {gid,key:'s'+j,j,c0,removed:false,dead:false,
+      pins:{GND:`h:${c0}g`,DQ:`h:${c0+1}g`,VDD:`h:${c0+2}g`}};
+  });
+  const dq0=rig.sensors[0].c0+1;
+  rig.res={key:'r1',col:dq0,removed:false,actual:RES_ACTUAL[n],p1:`h:${dq0}j`,p2:`r:B+:${dq0}`};
+  rig.rtc=cfg.rtc?{removed:false}:null;
+  rig.defaultWires=makeWires(rig);
+  rig.wires=rig.defaultWires.map(w=>({...w}));
+  rig.nextWire=100;
+  return rig;
+}
+function makeWires(rig){
+  const w=[];let k=0;
+  const add=(a,b,color,label,dy=0,kind='mm')=>w.push({id:'w'+(k++),a,b,color,label,dy,kind,cut:false});
+  const RED='#d62828',BLK='#262626',YEL='#e6b800';
+  add('a:5V','r:B+:1',RED,'Arduino 5 V → + rail',74);
+  add('a:GND1','r:B-:1',BLK,'Arduino GND → − rail',50);
+  rig.sensors.forEach(s=>{
+    add(`h:${s.c0}i`,`r:B-:${s.c0}`,BLK,`S${s.j} GND leg → − rail`);
+    add(`h:${s.c0+2}i`,`r:B+:${s.c0+2}`,RED,`S${s.j} VDD leg → + rail`);
+  });
+  for(let j=1;j<rig.sensors.length;j++){
+    const a=rig.sensors[j].c0+1, b=rig.sensors[j-1].c0+1;
+    add(`h:${a}h`,`h:${b}${j-1===0?'h':'i'}`,YEL,`S${j} DQ → S${j-1} DQ (shared DATA bus)`,34);
+  }
+  add('a:D2',`h:${rig.sensors[0].c0+1}i`,'#7bb800','Arduino D2 → DATA bus',-76);
+  if(rig.rtc){
+    add('rtc:SDA','a:A4','#2a7de1','RTC SDA → Arduino A4',10,'fm');
+    add('rtc:SCL','a:A5','#f08c00','RTC SCL → Arduino A5',10,'fm');
+    add('rtc:VCC','r:B+:2',RED,'RTC VCC → + rail',28,'fm');
+    add('rtc:GND','r:B-:2',BLK,'RTC GND → − rail',28,'fm');
+  }
+  return w;
+}
+
+/* =========================================================================
+   Circuit analysis (pure topology + simple DC solve)
+   ========================================================================= */
+function analyze(rig){
+  const uf=new UF(), U=(a,b)=>uf.union(sk(a),sk(b)), R=n=>uf.find(sk(n));
+  [['a:GNDt','a:GND1'],['a:GND1','a:GND2'],['a:SDA','a:A4'],['a:SCL','a:A5'],['a:IOREF','a:5V']].forEach(p=>U(p[0],p[1]));
+  const raw=[];
+  rig.sensors.forEach(s=>{if(s.removed)return;for(const p in s.pins)U(`${s.key}:${p}`,s.pins[p]);});
+  if(!rig.res.removed){U('r1:1',rig.res.p1);U('r1:2',rig.res.p2);raw.push(['r1:1','r1:2',rig.res.actual]);}
+  if(rig.rtc&&!rig.rtc.removed){raw.push(['rtc:SDA','rtc:VCC',4700],['rtc:SCL','rtc:VCC',4700]);}
+  rig.wires.forEach(w=>{if(!w.cut)U(w.a,w.b)});
+  const edges=raw.map(([a,b,r])=>({a:R(a),b:R(b),R:r}));
+  const n5=R('a:5V'),nG=R('a:GND1'),n33=R('a:3V3'),nD2=R('a:D2'),nA4=R('a:A4'),nA5=R('a:A5');
+  const short=n5===nG;
+  const pullup=nD2!==n5&&nD2!==nG&&edges.some(e=>(e.a===nD2&&e.b===n5)||(e.b===nD2&&e.a===n5));
+  const sens=rig.sensors.map(s=>{
+    if(s.removed) return {state:'absent',ok:false,reasons:['sensor pulled out of the board']};
+    const g=R(`${s.key}:GND`),d=R(`${s.key}:DQ`),v=R(`${s.key}:VDD`);
+    const reversed=g===n5&&v===nG&&n5!==nG;
+    const reasons=[];
+    if(reversed) return {state:'reversed',ok:false,reversed:true,reasons:['VDD and GND are swapped – this destroys the chip when powered']};
+    if(g!==nG) reasons.push('GND leg is not on GND');
+    if(v!==n5) reasons.push(v===nG?'VDD is on GND (parasitic-power wiring – not used in this design)':'VDD leg is not on 5 V');
+    if(d!==nD2) reasons.push('DQ leg is not connected to D2');
+    if(nD2===nG||nD2===n5) reasons.push('D2 line is shorted to '+(nD2===nG?'GND':'5 V'));
+    else if(!pullup) reasons.push('no pull-up resistor between D2 and 5 V');
+    if(s.dead) return {state:'dead',ok:false,reasons:['sensor was damaged earlier (reversed polarity) – replace it']};
+    return {state:reasons.length?'fault':'ok',ok:reasons.length===0,reasons};
+  });
+  let rtc=null;
+  if(rig.rtc){
+    if(rig.rtc.removed) rtc={state:'absent',found:false,reasons:['module disconnected']};
+    else{
+      const reasons=[];
+      if(R('rtc:VCC')!==n5) reasons.push('VCC is not on 5 V');
+      if(R('rtc:GND')!==nG) reasons.push('GND is not on GND');
+      const sda=R('rtc:SDA'),scl=R('rtc:SCL');
+      if(sda===nA5&&scl===nA4) reasons.push('SDA and SCL are swapped');
+      else{
+        if(sda!==nA4) reasons.push('SDA is not connected to A4');
+        if(scl!==nA5) reasons.push('SCL is not connected to A5');
+      }
+      rtc={state:reasons.length?'fault':'ok',found:reasons.length===0,reasons};
+    }
+  }
+  const names=new Map(),setN=(r,l)=>{if(!names.has(r))names.set(r,l)};
+  setN(nG,'GND');setN(n5,'5 V');setN(n33,'3.3 V');setN(nD2,'D2 · 1-Wire DATA bus');setN(nA4,'A4 · SDA (I²C)');setN(nA5,'A5 · SCL (I²C)');
+  PWRPINS.concat(ANAPINS,TOPPINS).forEach(p=>setN(R('a:'+p),'Arduino '+(ARDLABEL[p]||p)));
+  const netIdx=new Map();
+  const netNo=id=>{const r=R(id);if(!netIdx.has(r))netIdx.set(r,netIdx.size);return netIdx.get(r)};
+  return {R,n5,nG,n33,nD2,nA4,nA5,short,pullup,sens,rtc,edges,names,netNo,V:new Map()};
+}
+function recomputeV(rig){
+  const A=rig.A,r=rig.run;
+  A.V=new Map();
+  if(state.powered&&!r.tripped&&!A.short){
+    const src=new Map([[A.n5,4.97],[A.nG,0],[A.n33,3.28]]);
+    A.V=nodalV(A.edges.concat([{a:A.nA4,b:A.n5,R:30000},{a:A.nA5,b:A.n5,R:30000}]),src);
+  }
+}
+function touch(rig){
+  const r=rig.run;
+  rig.A=analyze(rig);
+  if(state.powered){
+    if(rig.A.short&&!r.tripped){
+      r.tripped=true;r.booted=false;
+      r.lines.push('# *** port lost: USB polyfuse tripped (5V–GND short) ***');
+    }
+    if(!r.tripped){
+      rig.sensors.forEach((s,k)=>{
+        if(rig.A.sens[k].reversed&&!s.dead){
+          s.dead=true;
+          rig.A.sens[k]={state:'dead',ok:false,reasons:['destroyed by reversed polarity']};
+        }
+      });
+    }
+  }
+  recomputeV(rig);
+}
+function touchAll(){RIGS.forEach(touch)}
+
+/* =========================================================================
+   Physics (toy model – illustrative only)
+   ========================================================================= */
+function Ta(h){return 22+7*Math.sin(2*Math.PI*(h-9)/24)}
+function Gsun(h){const x=((h%24)+24)%24;if(x<6||x>18)return 0;return 800*Math.pow(Math.sin(Math.PI*(x-6)/12),1.3)}
+function stepPhys(){
+  const dtMin=10/60,h=phys.t/3600,amb=Ta(h),g=Gsun(h)/800;
+  for(let p=0;p<4;p++){
+    const tr=TREAT[treatOf(p)],Teq=amb+24*g*GAIN[p],Tb=phys.Tb[p],Tp=phys.Tp[p];
+    let d=(Teq-Tb)/tr.tauB;
+    if(tr.pcm) d+=(Tp-Tb)/tr.tauBP;
+    phys.Tb[p]=Tb+d*dtMin;
+    if(tr.pcm){
+      const capp=1+12*Math.exp(-Math.pow((Tp-43.8)/1.0,2));
+      phys.Tp[p]=Tp+(Tb-Tp)/(tr.tauP*capp)*dtMin;
+    }
+  }
+  phys.t+=10;
+}
+function initPhys(h0){
+  phys.t=0;const t=Ta(0);
+  for(let p=0;p<4;p++){phys.Tb[p]=t;phys.Tp[p]=t}
+  while(phys.t<h0*3600) stepPhys();
+}
+function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function trueTemp(g){
+  const s=SENS[g];
+  if(s.kind==='panel') return phys.Tb[s.panel];
+  if(s.kind==='amb') return Ta(phys.t/3600);
+  return phys.Tp[panelOfTreat(s.treat)];
+}
+function readSensor(g){
+  const T=trueTemp(g)+SENS[g].off+gauss()*0.04;
+  return Math.round(T/0.0625)*0.0625;           // 12-bit resolution
+}
+
+/* =========================================================================
+   Firmware behaviour
+   ========================================================================= */
+function stamp(sec){return new Date(BASE_DATE+sec*1000).toISOString().slice(0,19).replace('T',' ')}
+function hms(sec){const s=Math.floor(sec);return String(Math.floor(s/3600)%24).padStart(2,'0')+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function pushLine(rig,t){const L=rig.run.lines;L.push(t);if(L.length>600)L.splice(0,L.length-600);rig.run.dirty=true}
+function bootRig(rig){
+  const r=rig.run;
+  touch(rig);
+  const A=rig.A;
+  if(A.short){r.tripped=true;r.booted=false;pushLine(rig,'# *** port lost: USB polyfuse tripped (5V–GND short) ***');return}
+  r.tripped=false;
+  pushLine(rig,`# ---- reset at sim ${hms(phys.t)} ----`);
+  pushLine(rig,`# field_logger · ${rig.name} · DS18B20 bus on D2`);
+  if(rig.hasRtc){
+    r.rtcOk=A.rtc.found;
+    pushLine(rig,r.rtcOk?`# RTC found: ${stamp(phys.t)}`:'# RTC NOT FOUND - check SDA->A4, SCL->A5, VCC, GND. Continuing without it.');
+  }else{r.rtcOk=false;pushLine(rig,'# no RTC fitted on this rig')}
+  r.found=[];
+  rig.sensors.forEach((s,k)=>{if(A.sens[k].ok&&!s.dead)r.found.push(k)});
+  pushLine(rig,'# sensors found: '+r.found.length);
+  if(!r.found.length) pushLine(rig,'# NONE FOUND - check the 4.7k pull-up between D2 and 5V');
+  r.found.forEach((k,i)=>pushLine(rig,`# index ${i} = ${SENS[rig.sensors[k].gid].addr}`));
+  pushLine(rig,'rtc_time,elapsed_s'+r.found.map((_,i)=>',S'+i).join(''));
+  r.booted=true;r.bootT=phys.t;r.next=phys.t;
+  emitSample(rig);
+  r.next=phys.t+10;
+}
+function emitSample(rig){
+  const r=rig.run,A=rig.A;
+  if(!r.booted)return;
+  let tstr='NA';
+  if(rig.hasRtc&&r.rtcOk) tstr=A.rtc&&A.rtc.found?stamp(phys.t):'2000-01-01 00:00:00';
+  const vals=r.found.map(k=>{
+    const s=rig.sensors[k],a=A.sens[k];
+    if(!a.ok||s.dead) return '-127.00';
+    const v=readSensor(s.gid);
+    hist[s.gid].push([phys.t/3600,v]);latest[s.gid]=v;
+    return v.toFixed(2);
+  });
+  pushLine(rig,`${tstr},${(phys.t-r.bootT).toFixed(1)}${vals.map(v=>','+v).join('')}`);
+  r.txUntil=performance.now()+180;
+}
+function advance(sec){
+  state.acc+=sec;
+  while(state.acc>=10){
+    state.acc-=10;stepPhys();
+    RIGS.forEach(rig=>{const r=rig.run;if(r.booted&&phys.t>=r.next){emitSample(rig);r.next+=10}});
+  }
+}
+
+/* =========================================================================
+   Power / controls
+   ========================================================================= */
+function plugIn(){
+  state.powered=true;state.paused=false;state.acc=0;
+  hist.forEach(h=>h.length=0);latest.fill(null);
+  initPhys(state.startH);
+  RIGS.forEach(r=>{r.run.lines=[];r.run.tripped=false;r.run.booted=false;});
+  RIGS.forEach(r=>{pushLine(r,'# USB connected');bootRig(r)});
+  syncControls();renderAll();
+}
+function unplug(){
+  state.powered=false;
+  RIGS.forEach(r=>{if(r.run.lines.length)pushLine(r,'# USB unplugged');r.run.booted=false;r.run.tripped=false});
+  touchAll();syncControls();renderAll();
+}
+function resetBoard(rig){
+  if(!state.powered)return;
+  rig.run.tripped=false;
+  bootRig(rig);renderAll();
+}
+
+/* =========================================================================
+   SVG drawing
+   ========================================================================= */
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function drawArduino(rig,A){
+  const on=state.powered&&!rig.run.tripped;
+  let s='<g>';
+  s+=`<path d="M${AX} ${AY+99} H 6" stroke="#2b2b2b" stroke-width="9" stroke-linecap="round"/>`;
+  s+=`<text x="4" y="${AY+150}" class="small">USB to laptop</text><text x="4" y="${AY+164}" class="small">${rig.com}</text>`;
+  s+=`<rect x="${AX}" y="${AY}" width="432" height="336" rx="12" fill="#00878f" stroke="#006a70" stroke-width="2"/>`;
+  s+=`<rect x="${AX-10}" y="${AY+62}" width="66" height="74" rx="3" fill="#b8bec4" stroke="#7d868d"/><rect x="${AX-6}" y="${AY+68}" width="46" height="62" fill="#98a0a7"/>`;
+  s+=`<rect x="${AX-10}" y="${AY+226}" width="60" height="62" rx="3" fill="#1f1f1f"/>`;
+  s+=`<circle cx="${AX+78}" cy="${AY+40}" r="11" fill="#c23b3b" stroke="#7a1f1f" stroke-width="2"/>`;
+  s+=`<text x="${AX+78}" y="${AY+66}" text-anchor="middle" class="pin">RESET</text>`;
+  s+=`<rect x="${AX+86}" y="${AY+96}" width="22" height="22" rx="2" fill="#1a1a1a"/>`;
+  s+=`<rect x="${AX+196}" y="${AY+150}" width="150" height="40" rx="3" fill="#161616"/><text x="${AX+271}" y="${AY+174}" text-anchor="middle" fill="#cfd8dc" font-size="10" font-weight="600">ATMEGA328P</text>`;
+  s+=`<rect x="${AX+150}" y="${AY+212}" width="38" height="14" rx="7" fill="#c8cdd1" stroke="#8a9096"/>`;
+  s+=`<text x="${AX+230}" y="${AY+262}" text-anchor="middle" fill="#e6fbfb" font-size="22" font-weight="700" letter-spacing="2">UNO</text>`;
+  s+=`<circle cx="${AX+376}" cy="${AY+250}" r="5" fill="${on?'#3ddc84':'#0b3f3a'}"/><text x="${AX+388}" y="${AY+253}" class="pin">ON</text>`;
+  const tx=on&&performance.now()<rig.run.txUntil;
+  s+=`<circle cx="${AX+376}" cy="${AY+270}" r="5" fill="${tx?'#ffc233':'#0b3f3a'}" id="txled${rig.n}"/><text x="${AX+388}" y="${AY+273}" class="pin">TX</text>`;
+  s+=`<rect x="${ARD.SCL[0]-9}" y="${AY+10}" width="${ARD.D8[0]-ARD.SCL[0]+18}" height="20" fill="#1c1c1c" rx="2"/>`;
+  s+=`<rect x="${ARD.D7[0]-9}" y="${AY+10}" width="${ARD.D0[0]-ARD.D7[0]+18}" height="20" fill="#1c1c1c" rx="2"/>`;
+  s+=`<rect x="${ARD.NC[0]-9}" y="${AY+306}" width="${ARD.VIN[0]-ARD.NC[0]+18}" height="20" fill="#1c1c1c" rx="2"/>`;
+  s+=`<rect x="${ARD.A0[0]-9}" y="${AY+306}" width="${ARD.A5[0]-ARD.A0[0]+18}" height="20" fill="#1c1c1c" rx="2"/>`;
+  TOPPINS.forEach(n=>{const [x,y]=ARD[n];s+=`<rect x="${x-3.5}" y="${y-3.5}" width="7" height="7" fill="#050505"/><text x="${x}" y="${y+19}" text-anchor="middle" class="pin">${ARDLABEL[n]||n}</text>`});
+  PWRPINS.concat(ANAPINS).forEach(n=>{const [x,y]=ARD[n];s+=`<rect x="${x-3.5}" y="${y-3.5}" width="7" height="7" fill="#050505"/><text x="${x}" y="${y-12}" text-anchor="middle" class="pin">${ARDLABEL[n]||n}</text>`});
+  s+=`<text x="${ARD.SCL[0]-9}" y="${AY-6}" class="small">digital 0–13 (top header)</text>`;
+  s+=`<text x="${ARD.NC[0]-9}" y="${AY+350}" class="small">power · analog (bottom header)</text>`;
+  return s+'</g>';
+}
+function drawBoard(rig,A){
+  const N=rig.cols,bw=40+(N-1)*P,bh=328;
+  let s=`<rect x="${BX}" y="${BY}" width="${bw}" height="${bh}" rx="8" fill="#e8e2cf" stroke="#c2baa0" stroke-width="2"/>`;
+  s+=`<rect x="${BX+8}" y="${BY+ROWY.e+14}" width="${bw-16}" height="10" rx="3" fill="#cdc5aa"/>`;
+  [['T',RAILY['T+'],RAILY['T-']],['B',RAILY['B+'],RAILY['B-']]].forEach(([k,yp,ym])=>{
+    s+=`<line x1="${BX+10}" x2="${BX+bw-10}" y1="${BY+yp-10}" y2="${BY+yp-10}" stroke="#d62828" stroke-width="1.6"/>`;
+    s+=`<line x1="${BX+10}" x2="${BX+bw-10}" y1="${BY+ym+10}" y2="${BY+ym+10}" stroke="#2a62d6" stroke-width="1.6"/>`;
+    s+=`<text x="${BX+3}" y="${BY+yp+3}" fill="#d62828" font-size="10" font-weight="700">+</text><text x="${BX+3}" y="${BY+ym+3}" fill="#2a62d6" font-size="11" font-weight="700">−</text>`;
+  });
+  for(let c=1;c<=N;c++){
+    const x=BX+20+(c-1)*P;
+    if(c===1||c%5===0) s+=`<text x="${x}" y="${BY+ROWY.a-14}" text-anchor="middle" font-size="8" fill="#7a735b">${c}</text>`;
+    for(const r of 'abcdefghij'){s+=`<rect x="${x-3.6}" y="${BY+ROWY[r]-3.6}" width="7.2" height="7.2" rx="1.2" fill="#3a3a3a"/>`}
+    for(const rn of ['T+','T-','B+','B-']) s+=`<rect x="${x-3.6}" y="${BY+RAILY[rn]-3.6}" width="7.2" height="7.2" rx="1.2" fill="#3a3a3a"/>`;
+  }
+  'abcdefghij'.split('').forEach(r=>{s+=`<text x="${BX+9}" y="${BY+ROWY[r]+3}" text-anchor="middle" font-size="8" fill="#7a735b">${r}</text>`});
+  s+=`<text x="${BX}" y="${BY+bh+16}" class="small">${rig.board} · ${N} columns</text>`;
+  return s;
+}
+function drawParts(rig,A){
+  let s='';
+  rig.sensors.forEach((sn,k)=>{
+    const a=A.sens[k];
+    const xs=[sn.c0,sn.c0+1,sn.c0+2].map(c=>BX+20+(c-1)*P),yG=BY+ROWY.g,yb=yG-10;
+    const cx=xs[1];
+    if(sn.removed){
+      s+=`<path d="M${cx-18} ${yb} h36 v-14 a18 18 0 0 0 -36 0 z" fill="none" stroke="#888" stroke-dasharray="3 3"/><text x="${cx}" y="${yb-12}" text-anchor="middle" class="small">S${sn.j} out</text>`;
+    }else{
+      xs.forEach(x=>{s+=`<line x1="${x}" y1="${yb}" x2="${x}" y2="${yG}" stroke="#aeb4b8" stroke-width="2"/>`});
+      const bad=sn.dead||a.state==='reversed';
+      s+=`<path d="M${cx-18} ${yb} h36 v-14 a18 18 0 0 0 -36 0 z" fill="${bad?'#4a2a2a':'#262626'}" stroke="${bad?'#ff5a4f':a.ok?'#3ddc84':'#555'}" stroke-width="${bad||a.ok?1.8:1}"/>`;
+      s+=`<text x="${cx}" y="${yb-17}" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">S${sn.j}</text>`;
+      s+=`<text x="${xs[0]}" y="${yb-3}" text-anchor="middle" fill="#cfd8dc" font-size="5.6">GND</text><text x="${xs[1]}" y="${yb-3}" text-anchor="middle" fill="#cfd8dc" font-size="5.6">DQ</text><text x="${xs[2]}" y="${yb-3}" text-anchor="middle" fill="#cfd8dc" font-size="5.6">VDD</text>`;
+      if(bad) s+=`<text x="${cx+12}" y="${yb-34}" font-size="14">💥</text>`;
+    }
+    s+=`<rect class="phit" data-part="s${k}" x="${cx-20}" y="${yb-36}" width="40" height="40"/>`;
+  });
+  const res=rig.res,rx=BX+20+(res.col-1)*P,y1=BY+ROWY.j,y2=BY+RAILY['B+'];
+  if(res.removed){
+    s+=`<rect x="${rx-5}" y="${y1+10}" width="10" height="28" rx="3" fill="none" stroke="#888" stroke-dasharray="3 3"/>`;
+  }else{
+    s+=`<line x1="${rx}" y1="${y1}" x2="${rx}" y2="${y2}" stroke="#aeb4b8" stroke-width="2"/>`;
+    s+=`<rect x="${rx-5.5}" y="${y1+9}" width="11" height="30" rx="4" fill="#d8c08a" stroke="#a98f55"/>`;
+    [['#e6c200',13],['#6a2c91',18],['#c0392b',23],['#c9a227',31]].forEach(([c,dy])=>{s+=`<rect x="${rx-5.5}" y="${y1+dy-1}" width="11" height="2.6" fill="${c}"/>`});
+  }
+  s+=`<text x="${rx+10}" y="${y1+28}" class="small">R${rig.n+1} 4.7k</text>`;
+  s+=`<rect class="phit" data-part="res" x="${rx-9}" y="${y1+6}" width="18" height="36"/>`;
+  if(rig.rtc){
+    const rm=rig.rtc.removed,bx=424,by=530;
+    s+=`<g opacity="${rm?.35:1}"><rect x="${bx}" y="${by}" width="124" height="80" rx="5" fill="#1c5bb5" stroke="#12408a" stroke-width="2"/>`;
+    s+=`<rect x="${bx+8}" y="${by+36}" width="56" height="18" rx="2" fill="#151515"/><text x="${bx+36}" y="${by+49}" text-anchor="middle" fill="#cfd8dc" font-size="8.5">DS3231</text>`;
+    s+=`<circle cx="${bx+92}" cy="${by+50}" r="19" fill="#c9ced2" stroke="#8a9096" stroke-width="2"/><text x="${bx+92}" y="${by+53}" text-anchor="middle" fill="#333" font-size="7.5">CR2032</text>`;
+    s+=`<text x="${bx+4}" y="${by+72}" fill="#e7f1ff" font-size="9" font-weight="600">RTC ${rig.n+1}</text></g>`;
+    Object.keys(RTCPINS).forEach(n=>{const [x,y]=RTCPINS[n];s+=`<rect x="${x-3}" y="${y-3}" width="6" height="6" fill="#d9b44a"/><text x="${x}" y="${y+12}" text-anchor="middle" fill="#e7f1ff" font-size="6.5">${n}</text>`});
+    s+=`<rect class="phit" data-part="rtc" x="${bx}" y="${by}" width="124" height="80"/>`;
+  }
+  return s;
+}
+function wirePath(w){
+  const a=xyOf(w.a),b=xyOf(w.b);
+  if(!a||!b)return '';
+  const dy=w.dy||0;
+  return `M${a[0]} ${a[1]} C ${a[0]} ${a[1]+dy} ${b[0]} ${b[1]+dy} ${b[0]} ${b[1]}`;
+}
+function drawWires(rig){
+  let s='';
+  rig.wires.forEach(w=>{
+    const d=wirePath(w);
+    if(w.cut){
+      s+=`<path d="${d}" fill="none" stroke="#888" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round" opacity=".8"/>`;
+    }else{
+      s+=`<path d="${d}" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="6.5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${w.color}" stroke-width="4" stroke-linecap="round"/>`;
+      [xyOf(w.a),xyOf(w.b)].forEach(p=>{s+=`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="${w.color}" stroke="rgba(0,0,0,.5)"/>`});
+    }
+    s+=`<path class="whit" data-wire="${w.id}" d="${d}"/>`;
+  });
+  return s;
+}
+function drawHits(rig,A){
+  let s='',N=rig.cols;
+  const hit=(id)=>{const [x,y]=xyOf(id);return `<circle class="hit" data-node="${id}" data-net="${A.netNo(id)}" cx="${x}" cy="${y}" r="6.2"/>`};
+  for(let c=1;c<=N;c++){
+    for(const r of 'abcdefghij') s+=hit(`h:${c}${r}`);
+    for(const rn of ['T+','T-','B+','B-']) s+=hit(`r:${rn}:${c}`);
+  }
+  PWRPINS.concat(ANAPINS,TOPPINS).forEach(n=>{s+=hit('a:'+n)});
+  if(rig.rtc) Object.keys(RTCPINS).forEach(n=>{s+=hit('rtc:'+n)});
+  return s;
+}
+function drawMarkers(rig){
+  let s='';
+  const m=(id,col,lbl)=>{if(!id)return;const p=xyOf(id);s+=`<g pointer-events="none"><circle cx="${p[0]}" cy="${p[1]}" r="8.5" fill="none" stroke="${col}" stroke-width="2.6"/><text x="${p[0]+10}" y="${p[1]-8}" font-size="10" font-weight="700" fill="${col}">${lbl}</text></g>`};
+  m(rig.probe.red,'#e5251b','+');m(rig.probe.black,'#111','−');
+  if(rig.pending){const p=xyOf(rig.pending);s+=`<circle class="pulse" cx="${p[0]}" cy="${p[1]}" r="9" fill="none" stroke="#ff9f1c" stroke-width="3" pointer-events="none"/>`}
+  rig.flash.forEach(id=>{const p=xyOf(id);if(p)s+=`<circle class="pulse" cx="${p[0]}" cy="${p[1]}" r="10" fill="none" stroke="#00a6d6" stroke-width="3" pointer-events="none"/>`});
+  return s;
+}
+function svgRig(rig){
+  const A=rig.A;
+  return `<svg class="board mode-${state.mode}" viewBox="0 0 ${W} ${H}" id="svg">`+
+   `<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="var(--stage-line)" stroke-width="1"/></pattern></defs>`+
+   `<rect width="${W}" height="${H}" fill="url(#grid)"/>`+
+   drawArduino(rig,A)+drawBoard(rig,A)+drawParts(rig,A)+drawWires(rig)+drawHits(rig,A)+drawMarkers(rig)+`</svg>`;
+}
+
+/* =========================================================================
+   Rig view (SVG + sidebar)
+   ========================================================================= */
+const main=document.getElementById('main');
+function modeBtn(m,label,tip){return `<button data-mode="${m}" class="${state.mode===m?'on':''}" title="${tip}">${label}</button>`}
+function renderRigView(){
+  const rig=RIGS[state.rig];
+  main.innerHTML=`<div class="rig">
+   <div>
+     <div class="toolbar" id="tools">
+       ${modeBtn('probe','Multimeter probe','Click two points to place the red and black probes')}
+       ${modeBtn('wire','Add wire','Click one hole/pin, then another')}
+       ${modeBtn('cut','Cut / restore wire','Click a wire to cut it. Click a cut wire to restore it. Your own wires are deleted.')}
+       ${modeBtn('part','Pull / replace part','Click a sensor, the resistor or the RTC to unplug it. Click again to put it back (a damaged sensor is swapped for a new one).')}
+       <button id="btnReset">Restore factory wiring</button>
+       <button id="btnClear">Clear all wires</button>
+     </div>
+     <div class="stagewrap" id="stage">${svgRig(rig)}</div>
+     <div class="hint" id="hint">${modeHelp()}</div>
+   </div>
+   <div id="side">
+     <div class="card"><h3>Multimeter</h3>
+       <div class="lcd" id="lcd">----</div>
+       <div class="row" style="margin:8px 0">
+         <button data-dmm="V" class="${state.dmm==='V'?'on':''}">V ⎓</button>
+         <button data-dmm="OHM" class="${state.dmm==='OHM'?'on':''}">Ω</button>
+         <button data-dmm="CONT" class="${state.dmm==='CONT'?'on':''}">Continuity</button>
+         <button id="swapProbe" title="Choose which probe the next click places">next: <b id="nextProbe">${rig.probe.next}</b></button>
+         <button id="clearProbe">Clear</button>
+       </div>
+       <div class="note" id="dmmNote"></div>
+       <div class="note" style="margin-top:4px"><span class="probe" style="background:#e5251b"></span><span id="pr">–</span><br><span class="probe" style="background:#111"></span><span id="pb">–</span></div>
+     </div>
+     <div class="card stat" id="status"></div>
+     <div class="card"><h3>Serial monitor · ${rig.name} <span class="note" style="text-transform:none">(9600 baud)</span></h3>
+       <pre class="mon" id="mon"></pre>
+       <div class="row" style="margin-top:8px"><button id="btnBoot" ${state.powered?'':'disabled'}>Reset Arduino</button>
+       <span class="note">Reset after you change wiring – the sketch counts sensors only at start-up.</span></div>
+     </div>
+     <div class="card"><details><summary>Build checklist (${rig.defaultWires.length} connections)</summary><div id="checklist" style="margin-top:6px"></div></details></div>
+   </div></div>`;
+  bindRigEvents();updateSide();updateMon(true);
+}
+function modeHelp(){
+  return {
+    probe:'Probe mode – click a hole or pin to place the red probe, click another for the black probe. Hover shows which net a point belongs to.',
+    wire:'Add-wire mode – click a hole/pin, then click where it should go. Esc cancels.',
+    cut:'Cut mode – click a wire to cut it (click again to restore). Wires you added are deleted.',
+    part:'Part mode – click a sensor, the resistor or the RTC to unplug it; click again to plug it back.'
+  }[state.mode];
+}
+function bindRigEvents(){
+  const rig=RIGS[state.rig],svg=document.getElementById('svg'),hint=document.getElementById('hint');
+  document.querySelectorAll('#tools [data-mode]').forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;rig.pending=null;renderRigView()});
+  document.getElementById('btnReset').onclick=()=>{rig.wires=rig.defaultWires.map(w=>({...w}));rig.pending=null;rig.probe.red=rig.probe.black=null;rig.sensors.forEach(s=>s.removed=false);rig.res.removed=false;if(rig.rtc)rig.rtc.removed=false;touch(rig);renderRigView()};
+  document.getElementById('btnClear').onclick=()=>{rig.wires=[];rig.pending=null;touch(rig);renderRigView()};
+  document.querySelectorAll('[data-dmm]').forEach(b=>b.onclick=()=>{state.dmm=b.dataset.dmm;document.querySelectorAll('[data-dmm]').forEach(x=>x.classList.toggle('on',x===b));updateDMM()});
+  document.getElementById('swapProbe').onclick=()=>{rig.probe.next=rig.probe.next==='red'?'black':'red';document.getElementById('nextProbe').textContent=rig.probe.next};
+  document.getElementById('clearProbe').onclick=()=>{rig.probe.red=rig.probe.black=null;rig.probe.next='red';redrawSvg()};
+  document.getElementById('btnBoot').onclick=()=>resetBoard(rig);
+  svg.addEventListener('click',e=>{
+    const t=e.target.closest('[data-node],[data-wire],[data-part]');
+    if(!t)return;
+    if(t.dataset.node) onNode(rig,t.dataset.node);
+    else if(t.dataset.wire) onWire(rig,t.dataset.wire);
+    else if(t.dataset.part) onPart(rig,t.dataset.part);
+  });
+  svg.addEventListener('mouseover',e=>{
+    const t=e.target.closest('[data-node]');
+    svg.querySelectorAll('.hit.hl').forEach(x=>x.classList.remove('hl'));
+    if(!t){hint.textContent=modeHelp();return}
+    svg.querySelectorAll(`.hit[data-net="${t.dataset.net}"]`).forEach(x=>x.classList.add('hl'));
+    const root=rig.A.R(t.dataset.node);
+    hint.textContent=`${descNode(t.dataset.node)}  →  net: ${rig.A.names.get(root)||'not connected to any signal'}`;
+  });
+  svg.addEventListener('mouseleave',()=>{svg.querySelectorAll('.hit.hl').forEach(x=>x.classList.remove('hl'));hint.textContent=modeHelp()});
+  buildChecklist(rig);
+}
+function redrawSvg(){
+  const rig=RIGS[state.rig],stage=document.getElementById('stage');
+  if(!stage)return;
+  stage.innerHTML=svgRig(rig);
+  const old=document.getElementById('svg');
+  // re-bind by cloning handlers: simplest is to rebuild the view's listeners
+  bindSvgOnly();
+  updateSide();
+}
+function bindSvgOnly(){
+  const rig=RIGS[state.rig],svg=document.getElementById('svg'),hint=document.getElementById('hint');
+  svg.addEventListener('click',e=>{
+    const t=e.target.closest('[data-node],[data-wire],[data-part]');
+    if(!t)return;
+    if(t.dataset.node) onNode(rig,t.dataset.node);
+    else if(t.dataset.wire) onWire(rig,t.dataset.wire);
+    else if(t.dataset.part) onPart(rig,t.dataset.part);
+  });
+  svg.addEventListener('mouseover',e=>{
+    const t=e.target.closest('[data-node]');
+    svg.querySelectorAll('.hit.hl').forEach(x=>x.classList.remove('hl'));
+    if(!t){hint.textContent=modeHelp();return}
+    svg.querySelectorAll(`.hit[data-net="${t.dataset.net}"]`).forEach(x=>x.classList.add('hl'));
+    const root=rig.A.R(t.dataset.node);
+    hint.textContent=`${descNode(t.dataset.node)}  →  net: ${rig.A.names.get(root)||'not connected to any signal'}`;
+  });
+  svg.addEventListener('mouseleave',()=>{svg.querySelectorAll('.hit.hl').forEach(x=>x.classList.remove('hl'));hint.textContent=modeHelp()});
+}
+function onNode(rig,id){
+  if(state.mode==='probe'){
+    rig.probe[rig.probe.next]=id;rig.probe.next=rig.probe.next==='red'?'black':'red';
+    const n=document.getElementById('nextProbe');if(n)n.textContent=rig.probe.next;
+    redrawSvg();updateDMM();
+  }else if(state.mode==='wire'){
+    if(!rig.pending){rig.pending=id}
+    else if(rig.pending!==id){
+      const cols=['#e6b800','#2a7de1','#7bb800','#f08c00','#9b51e0','#16a085'];
+      rig.wires.push({id:'w'+(rig.nextWire++),a:rig.pending,b:id,color:cols[rig.wires.length%cols.length],label:'custom wire',dy:30,kind:'mm',cut:false,custom:true});
+      rig.pending=null;touch(rig);
+    }else rig.pending=null;
+    redrawSvg();
+  }
+}
+function onWire(rig,wid){
+  if(state.mode!=='cut')return;
+  const i=rig.wires.findIndex(w=>w.id===wid);if(i<0)return;
+  const w=rig.wires[i];
+  if(w.custom) rig.wires.splice(i,1); else w.cut=!w.cut;
+  touch(rig);redrawSvg();
+}
+function onPart(rig,pid){
+  if(state.mode!=='part')return;
+  if(pid==='res') rig.res.removed=!rig.res.removed;
+  else if(pid==='rtc') rig.rtc.removed=!rig.rtc.removed;
+  else{
+    const s=rig.sensors[+pid.slice(1)];
+    if(s.dead){s.dead=false;s.removed=false} else s.removed=!s.removed;
+  }
+  touch(rig);redrawSvg();
+}
+
+/* ---------- sidebar updates ---------- */
+function fmtR(r){return !isFinite(r)?'OL':r>=1000?(r/1000).toFixed(2)+' kΩ':r.toFixed(1)+' Ω'}
+function dmmCompute(rig){
+  const p=rig.probe,A=rig.A;
+  if(!p.red||!p.black) return {txt:'----',note:'Click two points on the circuit (probe mode) to place the red and black probes.'};
+  const nr=A.R(p.red),nb=A.R(p.black);
+  if(state.dmm==='V'){
+    if(!state.powered||rig.run.tripped||A.short) return {txt:'0.00 V',note:state.powered?'Port is dead (short-circuit protection).':'USB is unplugged, so there is no voltage anywhere.'};
+    const vr=A.V.get(nr),vb=A.V.get(nb);
+    const fl=vr==null||vb==null;
+    let v=(vr??0)-(vb??0);
+    if(fl){v+=(Math.random()-.5)*0.12;return {txt:v.toFixed(2)+' V',note:'One of the probes is on a floating net – the reading is meaningless noise.'}}
+    if(nr===A.nD2&&Math.abs(v)>1) v-=0.03;
+    v+=(Math.random()-.5)*0.012;
+    return {txt:v.toFixed(2)+' V',note:`${A.names.get(nr)||'unnamed net'}  vs  ${A.names.get(nb)||'unnamed net'}`};
+  }
+  if(state.powered&&!rig.run.tripped) return {txt:'----',note:'Unplug USB before measuring resistance or continuity (the circuit must be dead).'};
+  const r=reff(A.edges,nr,nb);
+  if(state.dmm==='OHM') return {txt:fmtR(r),note:r===0?'Same net – a wire or breadboard strip joins these points.':!isFinite(r)?'Open circuit – nothing connects these points.':'Resistance measured through the circuit.'};
+  return {txt:r<30?'BEEP ●':'OL',note:r<30?'Continuity: these points are connected.':'No continuity.'};
+}
+function updateDMM(){
+  const rig=RIGS[state.rig],lcd=document.getElementById('lcd');if(!lcd)return;
+  const d=dmmCompute(rig);
+  lcd.textContent=d.txt;document.getElementById('dmmNote').textContent=d.note;
+  const nm=id=>id?`${descNode(id)} (${rig.A.names.get(rig.A.R(id))||'unnamed net'})`:'–';
+  document.getElementById('pr').textContent=nm(rig.probe.red);document.getElementById('pb').textContent=nm(rig.probe.black);
+}
+function updateSide(){
+  const rig=RIGS[state.rig],A=rig.A,r=rig.run,box=document.getElementById('status');if(!box)return;
+  let h='<h3 style="margin:0 0 6px;font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)">Circuit status</h3><table>';
+  const pw=!state.powered?'<span class="warn">USB unplugged</span>':r.tripped||A.short?'<span class="bad">⚠ 5 V ↔ GND short – USB fuse tripped</span>':'<span class="ok">powered · 4.97 V</span>';
+  h+=`<tr><td>Power</td><td>${pw}</td></tr>`;
+  const bus=A.nD2===A.nG||A.nD2===A.n5?'<span class="bad">D2 shorted to '+(A.nD2===A.nG?'GND':'5 V')+'</span>':A.pullup?`<span class="ok">pull-up present (${fmtR(rig.res.actual)})</span>`:'<span class="bad">no pull-up on D2</span>';
+  h+=`<tr><td>1-Wire bus</td><td>${bus}</td></tr>`;
+  rig.sensors.forEach((s,k)=>{
+    const a=A.sens[k],g=s.gid;
+    const found=r.booted&&r.found.includes(k);
+    let st=a.ok?(state.powered?(r.booted&&!found?'<span class="warn">OK now, but not counted at boot – press Reset Arduino</span>':'<span class="ok">✓ working</span>'):'<span class="ok">✓ wired correctly</span>'):`<span class="bad">✗ ${esc(a.reasons.join('; '))}</span>`;
+    h+=`<tr><td><span class="swatch" style="background:${COLORS[g]}"></span>S${s.j}</td><td><b>${esc(snameShort(g))}</b><br>${st}</td></tr>`;
+  });
+  if(rig.rtc){
+    const a=A.rtc;
+    h+=`<tr><td>RTC</td><td>${a.found?'<span class="ok">✓ answers at I²C 0x68</span>':'<span class="bad">✗ '+esc(a.reasons.join('; '))+'</span>'}</td></tr>`;
+  }else h+='<tr><td>RTC</td><td class="note">none on this rig – time comes from the laptop logger</td></tr>';
+  box.innerHTML=h+'</table>';
+  updateDMM();
+  const cl=document.getElementById('checklist');if(cl)updateChecklist(rig);
+}
+function buildChecklist(rig){
+  const cl=document.getElementById('checklist');if(!cl)return;
+  cl.innerHTML=rig.defaultWires.map((w,i)=>`<div class="chk"><span id="ck${i}">○</span><span style="flex:1">${esc(w.label)}</span><button data-show="${i}">show</button></div>`).join('');
+  cl.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{
+    const w=rig.defaultWires[+b.dataset.show];rig.flash=new Set([w.a,w.b]);redrawSvg();
+    setTimeout(()=>{rig.flash=new Set();if(RIGS[state.rig]===rig)redrawSvg()},2600);
+  });
+  updateChecklist(rig);
+}
+function updateChecklist(rig){
+  rig.defaultWires.forEach((w,i)=>{
+    const el=document.getElementById('ck'+i);if(!el)return;
+    const ok=rig.A.R(w.a)===rig.A.R(w.b);
+    el.textContent=ok?'✓':'○';el.className=ok?'ok':'';
+  });
+}
+function updateMon(force){
+  const rig=RIGS[state.rig],m=document.getElementById('mon');if(!m)return;
+  if(!force&&!rig.run.dirty)return;
+  rig.run.dirty=false;
+  const stick=m.scrollTop+m.clientHeight>=m.scrollHeight-24;
+  m.innerHTML=rig.run.lines.slice(-160).map(l=>`<span class="${l.startsWith('#')?(l.includes('***')?'e':'c'):''}">${esc(l)}</span>`).join('\n');
+  if(stick||force)m.scrollTop=m.scrollHeight;
+}
+
+/* =========================================================================
+   Overview tab (block diagram + live chart)
+   ========================================================================= */
+function overviewHTML(){
+  return `<div class="card"><h3>Field layout (live)</h3><div class="stagewrap"><svg class="board" style="min-width:820px" viewBox="0 0 1000 470" id="ovsvg">${ovSvg()}</svg></div>
+  <p class="note" style="margin:8px 0 0">Back-surface sensors stay on their panel; PCM-core sensors travel with their container. Change “Day layout” (while unplugged) to see the treatments rotate between panels.</p></div>
+  <div class="card"><h3>All 7 sensors – synthetic data</h3><canvas id="chart"></canvas><div class="legend" id="legend"></div></div>`;
+}
+function ovSvg(){
+  let s='';
+  const px=p=>40+p*170, panelY=50;
+  const sensorPos={};
+  for(let p=0;p<4;p++){
+    const t=treatOf(p),x=px(p);
+    s+=`<rect x="${x}" y="${panelY}" width="150" height="76" rx="4" fill="#27468a" stroke="#16295a" stroke-width="2"/>`;
+    for(let i=1;i<6;i++)s+=`<line x1="${x+i*25}" y1="${panelY}" x2="${x+i*25}" y2="${panelY+76}" stroke="#4c6bb5" stroke-width="1"/>`;
+    for(let i=1;i<3;i++)s+=`<line x1="${x}" y1="${panelY+i*25.3}" x2="${x+150}" y2="${panelY+i*25.3}" stroke="#4c6bb5" stroke-width="1"/>`;
+    s+=`<text x="${x+75}" y="${panelY-26}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">P${p+1}</text>`;
+    s+=`<text x="${x+75}" y="${panelY-10}" text-anchor="middle" font-size="11.5" fill="var(--muted)">${TREAT[t].name}</text>`;
+    const fill={A:'none',B:'#c9a46a',C:'#9aa3a8',D:'#6f777c'}[t];
+    if(t!=='A') s+=`<rect x="${x+52}" y="${panelY+84}" width="98" height="46" rx="3" fill="${fill}" stroke="#555" stroke-width="1.4"/><text x="${x+101}" y="${panelY+98}" text-anchor="middle" font-size="9.5" fill="#111">${t==='B'?'sand box':t==='C'?'composite':'comp. + graphite'}</text>`;
+    const bg=SENS.findIndex(q=>q.kind==='panel'&&q.panel===p);
+    s+=`<circle cx="${x+14}" cy="${panelY+80}" r="5" fill="${COLORS[bg]}" stroke="#000"/>`;
+    sensorPos[bg]=[x+14,panelY+80];
+    if(t==='C'||t==='D'){const g=SENS.findIndex(q=>q.kind==='core'&&q.treat===t);s+=`<circle cx="${x+64}" cy="${panelY+116}" r="5" fill="${COLORS[g]}" stroke="#000"/>`;sensorPos[g]=[x+64,panelY+116]}
+  }
+  const ambG=2;
+  s+=`<line x1="900" y1="150" x2="900" y2="60" stroke="#666" stroke-width="3"/><rect x="884" y="44" width="32" height="26" rx="4" fill="#e9e6da" stroke="#777"/><circle cx="900" cy="57" r="5" fill="${COLORS[ambG]}" stroke="#000"/>`;
+  s+=`<text x="900" y="30" text-anchor="middle" font-size="11.5" fill="var(--muted)">ambient, shaded</text>`;
+  sensorPos[ambG]=[900,57];
+  // values next to sensors
+  Object.keys(sensorPos).forEach(g=>{const [x,y]=sensorPos[g];const k=SENS[g].kind;
+    const tx=k==='amb'?x-10:k==='core'?x+10:x-8, ty=k==='core'?y+4:k==='amb'?y+4:y+20, an=k==='amb'?'end':k==='core'?'start':'start';
+    s+=`<text x="${tx}" y="${ty}" text-anchor="${an}" font-size="12" font-weight="700" fill="${k==='core'?'#111':'var(--ink)'}" id="ov${g}">—</text>`});
+  // rigs
+  const rigX=[60,330,600],rigY=290,rw=240;
+  RIGS.forEach((rig,i)=>{
+    const x=rigX[i],on=state.powered&&!rig.run.tripped;
+    s+=`<rect x="${x}" y="${rigY}" width="${rw}" height="78" rx="8" fill="#00878f" stroke="#006a70" stroke-width="2"/>`;
+    s+=`<circle cx="${x+rw-14}" cy="${rigY+14}" r="5" fill="${on?'#3ddc84':'#0b3f3a'}"/>`;
+    s+=`<text x="${x+12}" y="${rigY+22}" font-size="13" font-weight="700" fill="#fff">Arduino ${i+1} · ${rig.com}</text>`;
+    s+=`<text x="${x+12}" y="${rigY+40}" font-size="10.5" fill="#d9fbfb">${rig.sensorIds.map((g,k)=>'S'+k+' '+snameShort(g)).join(' · ')}</text>`;
+    s+=`<text x="${x+12}" y="${rigY+57}" font-size="10.5" fill="#d9fbfb">${rig.hasRtc?'DS3231 RTC on I²C':'no RTC (PC clock)'} · ${rig.board}</text>`;
+    rig.sensorIds.forEach((g,k)=>{
+      const sp=sensorPos[g];if(!sp)return;
+      const ex=x+40+k*(rw-80)/Math.max(1,rig.sensorIds.length-1)*(rig.sensorIds.length>1?1:0)+(rig.sensorIds.length===1?rw/2:0);
+      const my=(sp[1]+rigY)/2;
+      s+=`<path d="M${sp[0]} ${sp[1]} C ${sp[0]} ${my+40} ${ex} ${my-40} ${ex} ${rigY}" fill="none" stroke="${COLORS[g]}" stroke-width="2.2" opacity=".85"/>`;
+    });
+    s+=`<path d="M${x+rw/2} ${rigY+78} V 410" stroke="#333" stroke-width="3" fill="none"/>`;
+  });
+  s+=`<rect x="300" y="410" width="400" height="32" rx="6" fill="#444" stroke="#222"/><text x="500" y="431" text-anchor="middle" font-size="12" fill="#fff">powered USB hub</text>`;
+  s+=`<path d="M700 426 H 780" stroke="#333" stroke-width="3"/><rect x="780" y="396" width="200" height="62" rx="6" fill="#dfe3e6" stroke="#666"/><text x="880" y="422" text-anchor="middle" font-size="12" fill="#111" font-weight="700">Laptop</text><text x="880" y="440" text-anchor="middle" font-size="10.5" fill="#333">3 × serial_logger.py → 3 CSV files</text>`;
+  return s;
+}
+function updateOverview(){
+  RIGS.forEach(rig=>rig.sensorIds.forEach(g=>{const e=document.getElementById('ov'+g);if(e)e.textContent=latest[g]==null?'—':latest[g].toFixed(1)+' °C'}));
+  const lg=document.getElementById('legend');
+  if(lg)lg.innerHTML=SENS.map((s,g)=>`<span><span class="swatch" style="background:${COLORS[g]}"></span>${esc(sname(g))} <b>${latest[g]==null?'—':latest[g].toFixed(2)+' °C'}</b></span>`).join('');
+  drawChart();
+}
+function drawChart(){
+  const cv=document.getElementById('chart');if(!cv)return;
+  const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
+  const cs=getComputedStyle(document.body),ink=cs.getPropertyValue('--muted').trim()||'#666',line=cs.getPropertyValue('--line').trim()||'#ddd',fg=cs.getPropertyValue('--ink').trim()||'#000';
+  const L=44,Rm=12,T=10,B=26,pw=w-L-Rm,ph=h-T-B;
+  const t0=state.startH,t1=Math.max(state.powered||phys.t>0?phys.t/3600:t0+2,t0+2);
+  let lo=Infinity,hi=-Infinity;
+  hist.forEach(a=>a.forEach(([,v])=>{lo=Math.min(lo,v);hi=Math.max(hi,v)}));
+  if(!isFinite(lo)){lo=10;hi=50}
+  lo=Math.floor(Math.min(lo,43.8)-1);hi=Math.ceil(Math.max(hi,43.8)+1);
+  const X=t=>L+(t-t0)/(t1-t0)*pw,Y=v=>T+(1-(v-lo)/(hi-lo))*ph;
+  c.font='11px system-ui';c.fillStyle=ink;c.strokeStyle=line;c.lineWidth=1;
+  const step=(hi-lo)>40?10:5;
+  for(let v=Math.ceil(lo/step)*step;v<=hi;v+=step){c.beginPath();c.moveTo(L,Y(v));c.lineTo(L+pw,Y(v));c.stroke();c.textAlign='right';c.fillText(v+' °C',L-5,Y(v)+4)}
+  const hstep=(t1-t0)>30?6:(t1-t0)>12?3:1;
+  c.textAlign='center';
+  for(let t=Math.ceil(t0/hstep)*hstep;t<=t1;t+=hstep){c.beginPath();c.moveTo(X(t),T);c.lineTo(X(t),T+ph);c.stroke();c.fillText(String(Math.floor(t)%24).padStart(2,'0')+':00',X(t),h-8)}
+  c.setLineDash([4,4]);c.strokeStyle='#999';c.beginPath();c.moveTo(L,Y(43.8));c.lineTo(L+pw,Y(43.8));c.stroke();c.setLineDash([]);
+  c.fillStyle=ink;c.textAlign='left';c.fillText('43.8 °C',L+4,Y(43.8)-4);
+  hist.forEach((a,g)=>{
+    if(a.length<2)return;
+    c.beginPath();c.strokeStyle=COLORS[g];c.lineWidth=SENS[g].kind==='core'?2.2:1.8;
+    c.setLineDash(SENS[g].kind==='core'?[7,3]:SENS[g].kind==='amb'?[2,3]:[]);
+    const stride=Math.max(1,Math.floor(a.length/(pw*1.5)));
+    a.forEach(([t,v],i)=>{if(i%stride&&i!==a.length-1)return;const x=X(t),y=Y(v);i?c.lineTo(x,y):c.moveTo(x,y)});
+    c.stroke();c.setLineDash([]);
+  });
+  c.fillStyle=fg;
+}
+
+/* =========================================================================
+   Static tabs
+   ========================================================================= */
+function countWires(){
+  let mm=0,fm=0;RIGS.forEach(r=>r.defaultWires.forEach(w=>w.kind==='fm'?fm++:mm++));return [mm,fm];
+}
+function planHTML(){
+  const [mm,fm]=countWires();
+  const rows=RIGS.map((r,i)=>`<tr><td>${r.name} · Arduino ${i+1}</td><td>${r.board}</td><td>${r.sensorIds.length}</td><td>${r.sensorIds.map((g,k)=>`S${k} ${esc(snameShort(g))}`).join('<br>')}</td><td>${r.hasRtc?'yes':'no'}</td><td>${r.defaultWires.length}</td></tr>`).join('');
+  return `<div class="card"><h3>What this builds</h3>
+   <p style="margin:0 0 8px">Three independent loggers. Each Arduino Uno has <b>one 1-Wire bus on D2</b> with its DS18B20 sensors wired in parallel and <b>one 4.7 kΩ pull-up</b> from D2 to 5 V. Two of them also carry a DS3231 RTC on I²C (A4 = SDA, A5 = SCL). The laptop stores the data – the Arduinos only stream CSV over USB, exactly like your <code>ds18b20_logger.ino</code> + <code>serial_logger.py</code>.</p>
+   <table class="t"><tr><th>Rig</th><th>Breadboard</th><th>Sensors</th><th>Sensor map (assumption)</th><th>RTC</th><th>Jumpers</th></tr>${rows}</table>
+   <p class="note" style="margin:8px 0 0">Total jumpers: ${mm} male–male + ${fm} female–male (the RTC module has male header pins, so its four wires need a female end).</p></div>
+  <div class="cols2">
+  <div class="card"><h3>Parts accounting</h3><table class="t">
+   <tr><th>Part</th><th>Have</th><th>Used</th><th>Note</th></tr>
+   <tr><td>Arduino Uno</td><td>3</td><td>3</td><td>One bus each, one COM port each</td></tr>
+   <tr><td>DS18B20</td><td>7</td><td>7</td><td>3 + 2 + 2 – no spares</td></tr>
+   <tr><td>RTC (DS3231)</td><td>2</td><td>2</td><td>Rigs 1 and 2; rig 3 uses the laptop clock</td></tr>
+   <tr><td>Resistor (4.7 kΩ)</td><td>3</td><td>3</td><td>One pull-up per bus. Check the colour bands yellow–violet–red with the multimeter before field day</td></tr>
+   <tr><td>Breadboards</td><td>2 + 1 small</td><td>3</td><td>Each rig uses ≤ 18 columns plus the bottom rails, so a half-size board is enough; the small one needs ≥ 17 columns and power rails</td></tr>
+   <tr><td>Multimeter</td><td>1</td><td>–</td><td>Bench checks listed on the right</td></tr>
+  </table></div>
+  <div class="card"><h3>Bench checks with the multimeter</h3><table class="t">
+   <tr><th>Step</th><th>Meter</th><th>Expect</th></tr>
+   <tr><td>Resistor out of circuit</td><td>Ω</td><td>≈ 4.7 kΩ</td></tr>
+   <tr><td>+ rail ↔ − rail, USB unplugged</td><td>Continuity</td><td>No beep (a beep = short)</td></tr>
+   <tr><td>D2 ↔ + rail, USB unplugged</td><td>Ω</td><td>≈ 4.7 kΩ (the pull-up)</td></tr>
+   <tr><td>+ rail ↔ − rail, powered</td><td>V</td><td>4.9–5.1 V</td></tr>
+   <tr><td>Each sensor VDD ↔ GND leg, powered</td><td>V</td><td>≈ 5 V</td></tr>
+   <tr><td>DATA bus ↔ GND, powered</td><td>V</td><td>≈ 4.9–5.0 V. ~0 V = shorted or stuck; floating = no pull-up</td></tr>
+   <tr><td>RTC SDA / SCL ↔ GND, powered</td><td>V</td><td>≈ 4.9–5.0 V (module pull-ups)</td></tr>
+  </table><p class="note" style="margin:8px 0 0">Every one of these can be reproduced in the Rig tabs – try cutting the pull-up and re-measuring.</p></div></div>
+  <div class="card"><h3>Assumptions I made – change them if they’re wrong</h3><ul class="tight">
+   <li><b>The 7 sensors are DS18B20</b> (your logger and calibration sketches are written for them).</li>
+   <li><b>Sensor map:</b> four panel back-surface sensors (§3.6.2 – centre of the PCM-backed region), one shaded ambient sensor, and two PCM-core sensors (containers C and D) so the 43.8 °C freezing arrest is visible. Your notes don’t say where the other three go; this was my reading.</li>
+   <li><b>Back sensors are tied to the physical panel, PCM-core sensors to the container</b>, because treatments rotate between panels daily. Pick a rig-3 cable long enough to follow its container.</li>
+   <li>Pull-ups are 4.7 kΩ (as in your calibration notes). Uno R3 pinout. DS3231 module with the usual 6-pin header and onboard I²C pull-ups. If your small board has no power rails, use two columns as + and − buses.</li>
+   <li>Sensor addresses in the monitor are made up. The real index order comes from your address map from calibration.</li>
+  </ul></div>
+  <div class="card"><h3>Things the parts list can’t cover</h3><ul class="tight">
+   <li><b>No SD card module.</b> Nothing is stored on the Arduinos, so the laptop must stay connected all night (disable sleep). Use three <code>serial_logger.py</code> instances with different <code>PORT</code> values. The laptop’s <code>pc_timestamp</code> then aligns all three rigs; the RTC is a second, independent clock.</li>
+   <li><b>Breadboards outdoors</b> in wind, heat and vibration are the likeliest thing to fail. Do a full overnight bench run first, tape or clip the jumpers, and put each rig in a shaded, ventilated enclosure.</li>
+   <li><b>Cable runs.</b> Long probe cables load the 1-Wire bus; if readings jump, try 2.2 kΩ (same advice as your calibration sheet). USB beyond 5 m needs a powered hub.</li>
+   <li><b>ZS-042-style RTC boards</b> can try to charge a non-rechargeable CR2032. Check which coin cell you have.</li>
+  </ul></div>`;
+}
+function wiringHTML(){
+  return RIGS.map(rig=>`<div class="card"><h3>${rig.name} – wire list</h3><table class="t"><tr><th>#</th><th>From</th><th>To</th><th>Wire</th><th>Purpose</th></tr>${
+    rig.defaultWires.map((w,i)=>`<tr><td>${i+1}</td><td>${esc(descNode(w.a))}</td><td>${esc(descNode(w.b))}</td><td><span class="swatch" style="background:${w.color}"></span>${w.kind==='fm'?'female–male':'male–male'}</td><td>${esc(w.label)}</td></tr>`).join('')
+  }</table><p class="note" style="margin:8px 0 0">Parts: ${rig.sensors.map(s=>`S${s.j} legs in columns ${s.c0}–${s.c0+2}, row g (GND, DQ, VDD, flat face towards you)`).join('; ')}; 4.7 kΩ from column ${rig.res.col} row j to the bottom + rail.</p></div>`).join('')+
+  `<div class="card"><h3>Waterproof probes</h3><p style="margin:0">The sim draws bare TO-92 chips. For the stainless probes plug the cable leads into the same holes: red = VDD, black = GND, yellow = DATA (colours vary by supplier – confirm with the multimeter, as in your calibration sheet).</p></div>`;
+}
+const SKETCH=`/*
+ * field_logger.ino - ISEF 26 PCM field test (same sketch on all three rigs)
+ * One DS18B20 bus on D2 (4.7k pull-up to 5V), optional DS3231 RTC on A4/A5.
+ * Streams CSV over USB; serial_logger.py on the laptop stores it.
+ * Based on ds18b20_logger.ino + rtc_test.ino. NOT compiled or run on hardware -
+ * test it on the bench before field day.
+ *
+ * Output:  rtc_time,elapsed_s,S0,S1,...      (rtc_time = NA when no RTC)
+ */
+#include <Wire.h>
+#include <RTClib.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+#define HAVE_RTC 1                 // set to 0 on the rig without an RTC (rig 3)
+
+const int ONE_WIRE_BUS = 2;
+const unsigned long INTERVAL_MS = 10000UL;
+
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+#if HAVE_RTC
+RTC_DS3231 rtc;
+bool rtcOk = false;
+#endif
+int nDevices = 0;
+unsigned long nextRead = 0;
+
+void printAddress(DeviceAddress a) {
+  for (uint8_t i = 0; i < 8; i++) { if (a[i] < 16) Serial.print('0'); Serial.print(a[i], HEX); }
+}
+
+void setup() {
+  Serial.begin(9600);
+  delay(500);
+  Serial.println(F("# field_logger - DS18B20 bus on D2"));
+#if HAVE_RTC
+  rtcOk = rtc.begin();                       // keep logging even if this fails
+  if (!rtcOk) {
+    Serial.println(F("# RTC NOT FOUND - check SDA->A4, SCL->A5, VCC, GND. Continuing without it."));
+  } else {
+    if (rtc.lostPower()) {
+      Serial.println(F("# RTC lost power - setting to sketch compile time"));
+      rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    }
+    Serial.println(F("# RTC found"));
+  }
+#else
+  Serial.println(F("# no RTC fitted on this rig"));
+#endif
+  sensors.begin();
+  sensors.setResolution(12);
+  sensors.setWaitForConversion(true);
+  nDevices = sensors.getDeviceCount();
+  Serial.print(F("# sensors found: ")); Serial.println(nDevices);
+  if (nDevices == 0) Serial.println(F("# NONE FOUND - check the 4.7k pull-up between D2 and 5V"));
+  DeviceAddress addr;
+  for (int i = 0; i < nDevices; i++) {
+    if (sensors.getAddress(addr, i)) {
+      Serial.print(F("# index ")); Serial.print(i); Serial.print(F(" = "));
+      printAddress(addr); Serial.println();
+    }
+  }
+  Serial.print(F("rtc_time,elapsed_s"));
+  for (int i = 0; i < nDevices; i++) { Serial.print(F(",S")); Serial.print(i); }
+  Serial.println();
+}
+
+void loop() {
+  if ((long)(millis() - nextRead) >= 0) {
+    nextRead += INTERVAL_MS;
+    sensors.requestTemperatures();
+
+    char buf[25] = "NA";
+#if HAVE_RTC
+    if (rtcOk) {
+      DateTime now = rtc.now();
+      snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+               now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second());
+    }
+#endif
+    Serial.print(buf);
+    Serial.print(',');
+    Serial.print(millis() / 1000.0, 1);
+    for (int i = 0; i < nDevices; i++) {
+      Serial.print(',');
+      Serial.print(sensors.getTempCByIndex(i), 2);   // -127.00 = failed read
+    }
+    Serial.println();
+  }
+}
+`;
+function sketchHTML(){
+  return `<div class="card"><h3>field_logger.ino</h3><div class="row" style="margin-bottom:8px"><button id="copySketch">Copy sketch</button><span class="note" id="copyMsg">The serial monitors in this simulator print exactly this format.</span></div><pre class="code" id="sketchPre">${esc(SKETCH)}</pre>
+  <p class="note" style="margin:8px 0 0">Differences from your working sketches: the RTC is optional and a failed RTC does <b>not</b> halt the program (rtc_test.ino stops with <code>while(1)</code>, which would end a night of logging). Libraries: RTClib, OneWire, DallasTemperature. Not compiled here.</p></div>`;
+}
+
+/* =========================================================================
+   Tabs, controls, main loop
+   ========================================================================= */
+const TABS=[['plan','Plan & parts'],['overview','Overview · live'],['rig0','Rig 1'],['rig1','Rig 2'],['rig2','Rig 3'],['wiring','Wire lists'],['sketch','Sketch']];
+function renderTabs(){
+  const nav=document.getElementById('tabs');
+  nav.innerHTML=TABS.map(([k,l])=>`<button data-t="${k}" class="${state.tab===k?'sel':''}">${l}</button>`).join('');
+  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{state.tab=b.dataset.t;if(state.tab.startsWith('rig'))state.rig=+state.tab.slice(3);renderAll()});
+}
+function renderAll(){
+  renderTabs();
+  if(state.tab.startsWith('rig')){state.rig=+state.tab.slice(3);renderRigView()}
+  else if(state.tab==='plan') main.innerHTML=planHTML();
+  else if(state.tab==='overview'){main.innerHTML=overviewHTML();updateOverview()}
+  else if(state.tab==='wiring') main.innerHTML=wiringHTML();
+  else if(state.tab==='sketch'){main.innerHTML=sketchHTML();document.getElementById('copySketch').onclick=()=>{navigator.clipboard.writeText(SKETCH).then(()=>document.getElementById('copyMsg').textContent='Copied.',()=>document.getElementById('copyMsg').textContent='Copy failed – select the text manually.')}}
+  updateClock();
+}
+function syncControls(){
+  const pb=document.getElementById('powerBtn');
+  pb.textContent=state.powered?'Unplug USB':'Plug in USB';
+  pb.classList.toggle('primary',!state.powered);
+  document.getElementById('pauseBtn').disabled=!state.powered;
+  document.getElementById('pauseBtn').textContent=state.paused?'Resume':'Pause';
+  document.getElementById('startSel').disabled=state.powered;
+  document.getElementById('layoutSel').disabled=state.powered;
+}
+function updateClock(){
+  document.getElementById('clock').textContent=state.powered?`sim ${stamp(phys.t)}`:`ready · ${String(state.startH).padStart(2,'0')}:00`;
+}
+function initControls(){
+  const st=document.getElementById('startSel');
+  [6,9,12,16,18,22].forEach(h=>st.insertAdjacentHTML('beforeend',`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`));
+  st.value=state.startH;st.onchange=()=>{state.startH=+st.value;updateClock();if(state.tab==='overview')updateOverview()};
+  const ly=document.getElementById('layoutSel');
+  for(let k=0;k<4;k++)ly.insertAdjacentHTML('beforeend',`<option value="${k}">${[0,1,2,3].map(p=>'P'+(p+1)+'='+'ABCD'[(p+k)%4]).join(' ')}</option>`);
+  ly.onchange=()=>{state.layout=+ly.value;if(state.tab==='overview')renderAll()};
+  const sp=document.getElementById('speedSel');
+  [[1,'1× (real time)'],[10,'10×'],[60,'60× (1 min/s)'],[600,'600×'],[3600,'3600× (1 h/s)']].forEach(([v,l])=>sp.insertAdjacentHTML('beforeend',`<option value="${v}">${l}</option>`));
+  sp.value=state.speed;sp.onchange=()=>state.speed=+sp.value;
+  document.getElementById('powerBtn').onclick=()=>state.powered?unplug():plugIn();
+  document.getElementById('pauseBtn').onclick=()=>{state.paused=!state.paused;syncControls()};
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const r=RIGS[state.rig];if(r.pending){r.pending=null;redrawSvg()}}});
+}
+let lastT=performance.now();
+setInterval(()=>{
+  const now=performance.now(),dt=Math.min(1,(now-lastT)/1000);lastT=now;
+  if(state.powered&&!state.paused) advance(dt*state.speed);
+  updateClock();
+  if(state.tab.startsWith('rig')){updateMon();updateDMM();const r=RIGS[state.rig];const led=document.getElementById('txled'+r.n);if(led)led.setAttribute('fill',state.powered&&performance.now()<r.run.txUntil?'#ffc233':'#0b3f3a');}
+  else if(state.tab==='overview') updateOverview();
+},100);
+
+/* ---------- boot ---------- */
+RIGS=RIGCFG.map(buildRig);
+touchAll();
+initControls();syncControls();renderAll();
+window.__sim={RIGS,analyze,touch,state,plugIn,unplug,phys,hist,SENS,treatOf};
+</script>
+</body>
+</html>
