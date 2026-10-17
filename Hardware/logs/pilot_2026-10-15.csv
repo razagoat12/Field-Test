@@ -1,11 +1,12 @@
-# Pilot field run 2026-10-15, panels in sun, home site. Partly cloudy afternoon.
+# Field Day 1, 2026-10-15, Al Khobar (Saudi Arabia). Panels in sun, insulated back, 2 cm slabs.
 # Start ~13:30, end ~17:00 (clock_approx = 13:30 + elapsed_s; start time is approximate).
 # Sketch on Uno: ds18b20_calibration_test (idle mode), 2 s interval. Values RAW (no offsets).
-# Stations: S0 bare | S1 RBW alone | S2 composite | S3 composite + graphite
+# Stations (CORRECTED 16 Oct 2026 by finger test): S0 composite + graphite | S1 C40 composite | S2 RBW alone | S3 bare
+# The original header said S0 bare | S1 RBW | S2 composite | S3 graphite; that was wrong (it assumed breadboard order).
 # ROM: S0 28BAC2B4000000E8 | S1 2809627500000033 | S2 28B5357300000084 | S3 28DDDA76000000D2
-# Ice offsets (add to raw): S0 -1.6062 | S1 -1.3875 | S2 -1.8625 | S3 -1.3687 (changes/calibration.md)
+# Ice offsets (add to raw): S0 -1.6062 | S1 -1.3875 | S2 -1.8625 | S3 -1.3687 (docs/calibration.md)
 # Source: Serial Monitor transcript pasted in chat; exact copy in pilot_2026-10-15_raw_serial.txt
-elapsed_s,clock_approx,S0_bare,S1_rbw,S2_composite,S3_graphite
+elapsed_s,clock_approx,S0_graphite,S1_c40,S2_rbw,S3_bare
 2,13:30:02,53.1250,53.5625,51.9375,59.3750
 4,13:30:04,53.1875,53.6250,51.9375,59.4375
 6,13:30:06,53.2500,53.6875,52.0000,59.5000
