@@ -8,7 +8,7 @@ Date: 2026-10-14. Status: calibration done for the 4 sensors; replacement §3.8 
 
 **3.8 Sensor calibration**
 
-Temperature was logged with four DS18B20 digital sensors (12-bit, 0.0625 °C resolution, ±0.5 °C factory accuracy), read by an ESP32 microcontroller and logged to the laptop over Wi-Fi. Each sensor was identified by its unique 64-bit ROM address and labelled S0–S3.
+Temperature was logged with four DS18B20 digital sensors (12-bit, 0.0625 °C resolution, ±0.5 °C factory accuracy), read by an Arduino Uno and logged to a laptop over USB (Serial Monitor transcript). Each sensor was identified by its unique 64-bit ROM address and labelled S0–S3.
 
 Calibration used a one-point offset against a stirred crushed-ice slurry, with the four sensor tips bundled together so that they shared one thermal environment. Each reference point was the mean of 10 consecutive readings taken after the readings had settled (range ≤0.125 °C over 10 readings). The offset for each sensor was the difference between the reference value and its mean reading.
 
@@ -19,6 +19,8 @@ As an independent check, the four sensors were held in room-temperature water (n
 ---
 
 ## Numbers (source: Serial Monitor transcript, 2026-10-14)
+
+Station on each sensor (finger test, 16 Oct 2026): **S0 composite + graphite, S1 C40 composite, S2 RBW alone, S3 bare.** The calibration is per sensor, so it is unaffected by which station a sensor is on.
 
 | Sensor | ROM address | Ice mean (°C) | Ice offset (°C) | Room raw mean (°C) | Room corrected (°C) |
 |---|---|---|---|---|---|
@@ -45,7 +47,7 @@ As an independent check, the four sensors were held in room-temperature water (n
 
 ## To-dos
 
-- [ ] **Save the raw data.** The calibration numbers above came from a pasted Serial Monitor transcript; no CSV was saved. Copy the full transcript into `Hardware\logs\` (or rerun with `serial_logger.py`) so that the paper's numbers can be traced to a file.
+- [x] **Save the raw data.** The stored ice and room captures are printed at the top of every logger transcript (`Hardware/logs/*_raw_serial.txt`, lines 9–12). A dedicated calibration CSV was not saved. Copy the full transcript into `Hardware\logs\` (or rerun with `serial_logger.py`) so that the paper's numbers can be traced to a file.
 - [ ] **Replace §3.8 in `Paper\Chapters 1-3 - Draft.md`** with the text above. Not done yet.
 - [ ] **Add a limitation:** agreement at 40–70 °C is untested. Either run the optional warm check (`w` in the sketch) or keep this limitation.
 - [ ] **Add a limitation:** absolute temperatures are biased by the ice-bath offset (bath above 0 °C); only sensor-to-sensor comparisons are valid.

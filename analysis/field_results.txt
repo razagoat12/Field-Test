@@ -1,0 +1,62 @@
+FIELD TEST, AL KHOBAR - back-surface temperature, ice-corrected (deg C)
+Positive dT = the SECOND station in the pair runs cooler. Weather = Open-Meteo model data.
+
+========================================================================
+DAY 1: start 13:30, 6514 readings, 3.62 h
+
+  FINDINGS - first 90 min (13:30-15:00)
+  weather: sun 543 W/m2, air 34.7 C, wind 12.4 km/h, cloud 0 % max
+  peaks: bare 63.6, RBW 57.3, C40 57.4, C40+G 59.1
+  mean rise above air: bare 21.5, RBW 19.3, C40 20.9, C40+G 22.3
+  bare - C40       mean dT  +0.68   peak dT  +6.14
+  bare - RBW       mean dT  +2.26   peak dT  +6.24
+  bare - C40+G     mean dT  -0.77   peak dT  +4.49
+  RBW - C40        mean dT  -1.58   peak dT  -0.10
+  C40 - C40+G      mean dT  -1.45   peak dT  -1.66
+
+  FULL RUN - limitation, shown for transparency
+  weather: sun 340 W/m2, air 34.2 C, wind 11.9 km/h, cloud 0 % max
+  peaks: bare 63.6, RBW 57.3, C40 57.4, C40+G 59.1
+  mean rise above air: bare 11.3, RBW 10.3, C40 12.6, C40+G 14.0
+  bare - C40       mean dT  -1.39   peak dT  +6.14
+  bare - RBW       mean dT  +0.97   peak dT  +6.24
+  bare - C40+G     mean dT  -2.71   peak dT  +4.49
+  RBW - C40        mean dT  -2.36   peak dT  -0.10
+  C40 - C40+G      mean dT  -1.32   peak dT  -1.66
+
+  minutes above 60 / 65 / 68 C: bare 15/0/0, RBW 0/0/0, C40 0/0/0, C40+G 0/0/0
+
+========================================================================
+DAY 2: start 11:47, 7417 readings, 4.12 h
+
+  FINDINGS - first 90 min (11:47-13:17)
+  weather: sun 771 W/m2, air 38.8 C, wind 7.3 km/h, cloud 0 % max
+  peaks: bare 69.9, RBW 66.6, C40 68.3, C40+G 69.5
+  mean rise above air: bare 28.4, RBW 26.3, C40 26.6, C40+G 27.4
+  bare - C40       mean dT  +1.84   peak dT  +1.58
+  bare - RBW       mean dT  +2.14   peak dT  +3.24
+  bare - C40+G     mean dT  +0.96   peak dT  +0.36
+  RBW - C40        mean dT  -0.30   peak dT  -1.66
+  C40 - C40+G      mean dT  -0.88   peak dT  -1.22
+
+  FULL RUN - limitation, shown for transparency
+  weather: sun 591 W/m2, air 37.6 C, wind 10.0 km/h, cloud 0 % max
+  peaks: bare 69.9, RBW 66.6, C40 68.3, C40+G 70.1
+  mean rise above air: bare 23.1, RBW 22.6, C40 20.5, C40+G 27.8
+  bare - C40       mean dT  +2.62   peak dT  +1.58
+  bare - RBW       mean dT  +0.48   peak dT  +3.24
+  bare - C40+G     mean dT  -4.69   peak dT  -0.20
+  RBW - C40        mean dT  +2.14   peak dT  -1.66
+  C40 - C40+G      mean dT  -7.31   peak dT  -1.78
+
+  minutes above 60 / 65 / 68 C: bare 165/111/35, RBW 177/47/0, C40 136/87/4, C40+G 215/182/105
+
+========================================================================
+MATCHED SUNLIGHT - sun >= 600 W/m2, both days pooled, Day 2 shadow excluded
+  Day 1: 766 readings
+  Day 2: 2849 readings
+  bare - C40       mean dT  +2.37
+  bare - RBW       mean dT  +3.12
+  bare - C40+G     mean dT  +1.45
+  RBW - C40        mean dT  -0.76
+  C40 - C40+G      mean dT  -0.92

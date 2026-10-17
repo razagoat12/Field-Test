@@ -8,6 +8,13 @@ fixes two limitations of Durez & Waqas 2023 (Front. Energy Res.):
   2. It models a melting BAND (composite melts ~43->75 C, measured) via the enthalpy
      method, not a single melting point as commercial paraffins allow.
 
+Heat leaves the panel by convection AND long-wave radiation: the front face radiates to
+the sky (Swinbank clear-sky temperature) and the ground; an exposed back face (bare
+backsheet or composite outer face) radiates to surroundings at ambient. Two mountings:
+  "open"      - back exposed to air (open rack)
+  "insulated" - back against insulation (roof-integrated); the back path is conduction
+                through the insulation plus the outer film, for bare and PCM cases alike.
+
 The genetic-algorithm optimisation of Durez is intentionally NOT reproduced: the material
 is already chosen, so there is nothing to optimise over. This script PREDICTS performance
 for the chosen composite and outputs a falsifiable predicted field delta-T.
@@ -52,7 +59,7 @@ INK_MUTED = "#8a8880"
 PROPS = {
     "T_solidus_C":   43.0,   # MEASURED  - onset, Session 4 (== pure LA melt)
     "T_liquidus_C":  75.0,   # MEASURED  - liquidus, Session 4 (~55/45 blend, n=1)
-    "dH_J_per_g":    95.0,   # TBD       - estimate ~half pure LA; awaiting DSC
+    "dH_J_per_g":    76.0,   # PREDICTED - 191 J/g x 0.40 for the C40 field composite; awaiting DSC
     "rho_kg_m3":    900.0,   # TBD       - between molten LA 850 and solid RBW ~975
     "cp_J_per_gK":    2.0,   # LITERATURE- generic organic PCM; awaiting DSC/measurement
     "k_W_mK":         0.2,   # LITERATURE- generic organic PCM; awaiting hot-wire at GIKI
@@ -60,7 +67,7 @@ PROPS = {
 
 # Panel / system. Small mono-Si panel per the proposal (buy 10-20 Wp, keep 4 matched).
 PANEL_AREA_M2   = 0.10     # ~0.1 m^2 module face
-PCM_THICK_M     = 0.02     # 2 cm composite layer (RESULTS.md back-of-envelope)
+PCM_THICK_M     = 0.02     # 2 cm field slabs (Oct 2026); same as paper v1 (§3.9.6)
 ETA_REF         = 0.18     # reference electrical efficiency at STC
 BETA_PER_C      = 0.0043   # -0.43 %/C RATED Pmp coefficient (module datasheet, Yadav et al. 2025) - NOT a field-measured value
 T_REF_C         = 25.0     # reference cell temperature
@@ -71,6 +78,19 @@ PANEL_HEATCAP_J_per_m2K = 9000.0   # ~ order of a glass-fronted module per m^2
 # and the PCM container's outer face) so the comparison is fair - the only difference
 # between the two runs is the PCM layer interposed on this same back path.
 H_BACK_W_m2K    = 8.0      # sheltered back-surface convection coefficient
+
+# Long-wave radiation
+SIGMA           = 5.670e-8 # Stefan-Boltzmann constant, W/m^2.K^4
+EPS_FRONT       = 0.85     # glass front face
+EPS_BACK        = 0.85     # polymer backsheet
+EPS_PCM         = 0.90     # wax composite outer face
+TILT_DEG        = 35.0     # panel tilt from horizontal (sets sky/ground view factors)
+
+# Mounting: "open" (back exposed to air) or "insulated" (back against insulation,
+# the roof-integrated case). Insulation applies to bare and PCM cases alike.
+MOUNTING        = "insulated"
+INSUL_K_W_mK    = 0.035    # expanded polystyrene (thermocol)
+INSUL_THICK_M   = 0.02     # 2 cm board
 
 # Synthetic diurnal climate - Topi (GIKI, 34.1 N), October field window.
 T_NIGHT_C   = 15.0
@@ -109,6 +129,39 @@ def irradiance_Wm2(t_s):
 def h_conv(wind_ms):
     """Wind convection coefficient (Durez Eq 1)."""
     return 5.8 + 3.7 * wind_ms
+
+
+def T_sky_C(Tamb_C):
+    """Clear-sky effective temperature, Swinbank (1963): T_sky = 0.0552 T_amb^1.5 (K)."""
+    return 0.0552 * (Tamb_C + 273.15) ** 1.5 - 273.15
+
+
+def rad_loss(eps, T_C, Tsurr_C, area):
+    """Net long-wave radiation (W) from a surface at T_C to surroundings at Tsurr_C."""
+    return eps * SIGMA * area * ((T_C + 273.15) ** 4 - (Tsurr_C + 273.15) ** 4)
+
+
+def front_loss(T_C, Tamb_C, hw, area):
+    """Front face: wind convection, plus radiation to sky and ground weighted by view factor."""
+    c = np.cos(np.radians(TILT_DEG))
+    f_sky, f_gnd = 0.5 * (1 + c), 0.5 * (1 - c)
+    return (hw * area * (T_C - Tamb_C)
+            + f_sky * rad_loss(EPS_FRONT, T_C, T_sky_C(Tamb_C), area)
+            + f_gnd * rad_loss(EPS_FRONT, T_C, Tamb_C, area))
+
+
+def back_loss(T_C, Tamb_C, eps, area):
+    """
+    Heat leaving the outermost back surface (bare backsheet, or the composite's outer face).
+    open:      convection + radiation to surroundings at ambient.
+    insulated: conduction through the insulation board in series with its outer film
+               (convection + linearised radiation at 300 K).
+    """
+    if MOUNTING == "open":
+        return H_BACK_W_m2K * area * (T_C - Tamb_C) + rad_loss(eps, T_C, Tamb_C, area)
+    h_film = H_BACK_W_m2K + 4 * 0.90 * SIGMA * 300.0 ** 3
+    U = 1.0 / (INSUL_THICK_M / INSUL_K_W_mK + 1.0 / h_film)
+    return U * area * (T_C - Tamb_C)
 
 
 # =====================================================================
@@ -176,21 +229,21 @@ def simulate(use_pcm):
 
         # panel energy balance (W)
         q_solar = ABS_TAU_ALPHA * S * PANEL_AREA_M2
-        q_conv_top = hw * PANEL_AREA_M2 * (T_panel - Tamb)
+        q_front = front_loss(T_panel, Tamb, hw, PANEL_AREA_M2)
         if use_pcm:
             # panel conducts into the PCM layer (series resistance k/thickness)
             q_back = UA_pcm * (T_panel - T_pcm)
         else:
-            # bare panel: back convects straight to ambient at the SAME back coefficient
-            q_back = H_BACK_W_m2K * PANEL_AREA_M2 * (T_panel - Tamb)
+            # bare panel: back sheds heat through the SAME back boundary the PCM's outer face uses
+            q_back = back_loss(T_panel, Tamb, EPS_BACK, PANEL_AREA_M2)
 
-        dTpanel = (q_solar - q_conv_top - q_back) / Cpanel
+        dTpanel = (q_solar - q_front - q_back) / Cpanel
         T_panel += dTpanel * DT_S
 
         if use_pcm:
             # PCM node: gains conduction from panel, sheds from its outer face to ambient
-            # via the SAME back-convection boundary the bare panel uses (fair comparison)
-            q_out = H_BACK_W_m2K * PANEL_AREA_M2 * (T_pcm - Tamb)
+            # via the SAME back boundary the bare panel uses (fair comparison)
+            q_out = back_loss(T_pcm, Tamb, EPS_PCM, PANEL_AREA_M2)
             q_to_pcm = q_back            # what entered the PCM from the panel
             dH_total = (q_to_pcm - q_out) * DT_S         # J stored in the PCM
             H_pcm += dH_total / _PCM_MASS                # -> per kg
@@ -221,6 +274,7 @@ def simulate(use_pcm):
 # Run both cases + derive metrics
 # =====================================================================
 def main():
+    global MOUNTING
     os.makedirs(OUT, exist_ok=True)
 
     base = simulate(use_pcm=False)
@@ -256,6 +310,7 @@ def main():
     resolidifies = all(x < 0.05 for x in nightly_min_LF) if nightly_min_LF else False
 
     peak_LF = float(np.nanmax(pcm["LF"]))
+    peak_pcm_T = float(np.nanmax(pcm["T_pcm"]))
 
     # ---- summary text ----
     emit("=" * 66)
@@ -264,8 +319,13 @@ def main():
     emit(f"Simulated: {N_DAYS} days, synthetic Topi-October climate "
          f"({T_NIGHT_C:.0f}-{T_DAY_C:.0f} C, peak {IRRAD_PEAK:.0f} W/m2)")
     emit(f"Composite: melt band {_TS:.0f}-{_TL:.0f} C, dH {PROPS['dH_J_per_g']:.0f} J/g, "
-         f"k {PROPS['k_W_mK']:.2f} W/mK, layer {PCM_THICK_M*100:.0f} cm, "
+         f"k {PROPS['k_W_mK']:.2f} W/mK, layer {PCM_THICK_M*1000:.0f} mm, "
          f"mass {_PCM_MASS*1000:.0f} g")
+    if MOUNTING == "open":
+        emit(f"Mounting: open back (convection + radiation), tilt {TILT_DEG:.0f} deg")
+    else:
+        emit(f"Mounting: back against {INSUL_THICK_M*1000:.0f} mm insulation "
+             f"(k {INSUL_K_W_mK} W/mK) - roof-integrated case, tilt {TILT_DEG:.0f} deg")
     emit("")
     emit("--- Thermal / electrical ---")
     emit(f"Peak back-surface, no PCM : {peak_base:5.1f} C")
@@ -283,7 +343,27 @@ def main():
          + ", ".join(f"{x:.2f}" for x in nightly_min_LF))
     emit(f"Re-solidifies each night  : {'YES - resets daily' if resolidifies else 'NO - saturates'}")
     emit("")
-    emit("--- Sensitivity to thermal conductivity (why the graphite panel matters) ---")
+    emit("--- Leakage risk (composite temperature vs C40 bench retention) ---")
+    emit(f"Peak composite temperature: {peak_pcm_T:5.1f} C")
+    emit("C40 bench result (2 h)    : 0.40% loss at 50 C, 1.47% at 60 C (pass <= 2%), "
+         "3.51% at 70 C (fail)")
+    emit(f"Verdict                   : "
+         + ("inside the tested pass range" if peak_pcm_T <= 60.0
+            else "between 60 and 70 C - untested gap" if peak_pcm_T <= 70.0
+            else "above 70 C - C40 FAILS retention here"))
+    emit("")
+    emit("--- Mounting comparison (same composite, same climate) ---")
+    mounting_saved = MOUNTING
+    emit(f"{'mounting':>10} {'bare peak':>10} {'PCM peak':>9} {'deltaT':>8} {'PCM max T':>10}")
+    for mnt in ("open", "insulated"):
+        MOUNTING = mnt
+        b = simulate(use_pcm=False)
+        p = simulate(use_pcm=True)
+        bp, pp = float(np.nanmax(b["T_panel"])), float(np.nanmax(p["T_panel"]))
+        emit(f"{mnt:>10} {bp:>8.1f} C {pp:>7.1f} C {bp-pp:>+7.1f} {float(np.nanmax(p['T_pcm'])):>8.1f} C")
+    MOUNTING = mounting_saved
+    emit("")
+    emit("--- Sensitivity to thermal conductivity (the graphite question) ---")
     emit(f"k is the dominant unknown (placeholder {PROPS['k_W_mK']:.1f} W/mK). "
          f"Bare-panel peak fixed at {peak_base:.1f} C.")
     emit(f"{'k (W/mK)':>9} {'PCM peak':>9} {'deltaT':>8} {'peak LF':>8}")
@@ -294,17 +374,21 @@ def main():
         pk = float(np.nanmax(p["T_panel"]))
         emit(f"{k:>9.1f} {pk:>8.1f} C {peak_base-pk:>+7.1f} {float(np.nanmax(p['LF'])):>8.2f}")
     PROPS["k_W_mK"] = k_saved
-    emit("Interpretation: at the placeholder k the layer insulates more than it buffers;")
-    emit("net cooling only appears once k ~> 1 W/mK (graphite-enhanced). Even then it is")
-    emit("modest, because the 43-75 C melt band sits well above the ~29 C October ambient -")
-    emit("independently echoing why Durez found a lower melting point cools better.")
+    emit("Interpretation: deltaT > 0 means the composite panel runs cooler than bare. Low k")
+    emit("adds thermal resistance on the back path; whether storage outweighs it depends on")
+    emit("how much the bare back can shed on its own - see the mounting comparison above.")
     emit("")
     emit("--- CAVEATS ---")
     emit("* Synthetic climate, not measured Topi weather - swap in real hourly data.")
     emit("* dH, rho, cp, k are LITERATURE/TBD placeholders pending DSC + hot-wire at GIKI;")
-    emit("  the composite liquidus (75 C) and solidus (43 C) are MEASURED (n=1, Session 4).")
+    emit("  the composite liquidus (75 C) and solidus (43 C) are MEASURED (n=1, Session 4,")
+    emit("  ~55/45 blend - the C40 liquidus is not yet measured).")
     emit("* Lumped 2-node model: no in-layer gradient, no natural convection in the melt,")
     emit("  panel heat capacity is an order-of-magnitude estimate.")
+    emit("* Radiation: Swinbank clear-sky temperature; back surroundings taken at ambient;")
+    emit("  emissivities assumed (glass 0.85, backsheet 0.85, wax 0.90).")
+    emit("* Convection correlation (Durez Eq 1) is for full-size modules; mini panels shed")
+    emit("  heat more easily, so absolute temperatures here are likely high.")
     emit("* NOT yet field-validated. This run verifies BEHAVIOUR, not quantitative values.")
     emit("* delta-T above is a pre-registered PREDICTION to test against the October field run.")
 
