@@ -154,6 +154,25 @@ def main():
 
     emit("")
     emit("=" * 72)
+    emit("POST-SUNSET CONVERGENCE CHECK (in place of the bare calibration run; post hoc)")
+    emit("Gap to bare in the last 10 min = panel/contact bias + heat still leaving the slab, so")
+    emit("it is an UPPER bound on bias. Smallest bound across days used. Cannot bound a")
+    emit("negative bias, or one that appears only in sunlight.")
+    bound = {}
+    for d in (1, 3):
+        t, temps, wx, ch = data[d]
+        k = t >= t[-1] - 600
+        gaps = {n: float(np.mean(temps[n][k] - temps["bare"][k])) for n in NAME.values() if n != "bare"}
+        emit(f"  Day {d}, last 10 min ({hhmm(ch[-1])}): " + ", ".join(f"{n} {g:+.2f}" for n, g in gaps.items()))
+        for n, g in gaps.items():
+            bound[n] = min(bound.get(n, 99.0), g)
+    emit("  bias upper bound: " + ", ".join(f"{n} {b:+.2f}" for n, b in bound.items()))
+    for a, b in PAIRS:
+        x = np.array([(peaks[d][a] - bound.get(a, 0.0)) - (peaks[d][b] - bound.get(b, 0.0)) for d in data])
+        emit(f"  corrected {a + ' - ' + b:16s} days {' '.join(f'{y:+5.1f}' for y in x)}   mean {x.mean():+5.2f}")
+
+    emit("")
+    emit("=" * 72)
     emit("EVENING COOLING RATE (C/h) at the same panel temperature after the row loses sun")
     emit("(post hoc; 10-min running mean). Latent release = slow cooling near 43-44 C.")
     for d in (2, 3):

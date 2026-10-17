@@ -70,7 +70,8 @@ flowchart LR
 ```
 
 - **No container.** Slabs (**14 × 7 × 1 cm**, measured after the test; earlier notes said
-  ≈ 2 cm) sit between panel and board, notched round the lead joints.
+  ≈ 2 cm) sit between panel (**3 × 5 in**, 7.6 × 12.7 cm) and board, notched round the lead
+  joints, covering ≈ 92 % of the panel back.
 - **Every panel insulated the same way**, bare included, so the bare panel is not cooled by
   air the others can't reach.
 - **Sensors** are taped to each panel's back just below the slab's lower edge, at the same
@@ -158,8 +159,11 @@ peak that day. Positive = cooler than bare.
 
 **Limitations, stated plainly.** ⚠️
 
-- **One panel per treatment, three days**, and **no bare calibration correction applied yet**:
-  part of a difference may be the panels themselves.
+- **One panel per treatment, three days.** The bare calibration run's log wasn't available, so
+  panel bias is **bounded after sunset** instead: with no sun the panels came back to within
+  0.14 °C (RBW) and 0.54 °C (C40) of bare. Correcting by those bounds *raises* the C40 cooling
+  to 7.1 °C (every day ≥ 2 °C), but it can't rule out a bias of the other sign or one that only
+  shows in sunlight.
 - **Shadows:** Day 2 from ≈ 13:22, Day 3 from ≈ 14:45. Shown, not used for findings.
 - **Day 1** started after the peak, in a gusty sea breeze.
 - **Weather is model data**; **sensors sit below the slab edge**; mass on a **1 g scale**.

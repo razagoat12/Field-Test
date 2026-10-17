@@ -10,7 +10,7 @@ section 7.
 ## 1. Site and setup
 
 - **Site:** a roof in **Al Khobar, Saudi Arabia**, panels against a wall facing south.
-- **Panels:** four frameless **mini mono-crystalline panels** of one model, not IV-matched.
+- **Panels:** four frameless **mini mono-crystalline panels** of one model, **3 × 5 in** (7.6 × 12.7 cm), not IV-matched.
   ⚠️ Rating, V<sub>oc</sub>, I<sub>sc</sub> and size from the label: *to record*.
 - **Mounting (roof-integrated case):** each panel is taped to its own **2 cm thermocol
   board**. The board's bottom edge rests on a box and its top edge leans on the wall, so the
@@ -53,7 +53,7 @@ the rotation** and must come from a bare calibration run (section 4).
 All slabs off, every panel bare on its board, same rig. Log for at least an hour in full
 sun, moving every station one spot every 15 min and marking each move. Use
 `field_station_logger/field_station_logger.ino` (type `m` + Enter after each move) or
-`field_logger_pc.py --move-every 15`. **Status:** ⚠️ *planned / done 16 Oct evening? record it*.
+`field_logger_pc.py --move-every 15`. **Status:** its log was not available for analysis; bias is bounded instead from the post-sunset convergence of the stations (`analysis/field_results.txt`).
 
 ## 5. Weighing
 
