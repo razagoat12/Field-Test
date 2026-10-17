@@ -74,9 +74,9 @@ flowchart LR
   joints, covering ≈ 92 % of the panel back.
 - **Every panel insulated the same way**, bare included, so the bare panel is not cooled by
   air the others can't reach.
-- **Sensors** are taped to each panel's back just below the slab's lower edge, at the same
-  measured spot on all four. That spot has no composite directly behind it, so it
-  **understates** any effect under the slab.
+- **Sensors** are taped to each panel's back at the same measured spot on all four,
+  **sandwiched between panel and slab** (bare panel: between panel and board), on all three
+  days. (Corrected 17 Oct; an earlier note said "just below the slab's lower edge".)
 - **Open-circuit leads** on every panel.
 - **Rotation:** whole stations move one spot along the row each morning. Slabs stay on
   their own panel, so panel-to-panel bias needs a **bare calibration run** (see status).
@@ -166,7 +166,7 @@ peak that day. Positive = cooler than bare.
   shows in sunlight.
 - **Shadows:** Day 2 from ≈ 13:22, Day 3 from ≈ 14:45. Shown, not used for findings.
 - **Day 1** started after the peak, in a gusty sea breeze.
-- **Weather is model data**; **sensors sit below the slab edge**; mass on a **1 g scale**.
+- **Weather is model data**; **sensor contact may change as a slab softens**; mass on a **1 g scale**.
 - **Slabs were 1 cm**, not the 2 cm the prediction assumed; **mini panels**, not full-size.
 
 ### Data format

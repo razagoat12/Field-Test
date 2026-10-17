@@ -30,9 +30,9 @@ section 7.
 
 - Slabs are cast **14 × 7 × 1 cm** (measured after the test; earlier notes said ≈ 2 cm), notched round the lead joints and held
   between panel and board. **No container.**
-- Each **sensor is taped to the panel's back just below the slab's lower edge**, at the same
-  measured spot on all four panels. This spot has no composite directly behind it, so it
-  **understates** any effect under the slab.
+- Each **sensor is taped to the panel's back, sandwiched between panel and slab** (bare panel:
+  between panel and board), at the same measured spot on all four panels, on all three days.
+  (Corrected 17 Oct; an earlier note said "just below the slab's lower edge".)
 - Mapping confirmed by **finger test on 16 Oct**. Day 1's original file header had it wrong.
 
 ## 3. Each day
@@ -78,7 +78,7 @@ RBW 98 → 98 g (0 %), C40 96 → 94 g (2.1 %), C40 + graphite 100 → 89 g + fr
 | 4 matched 10–20 Wp panels | 4 mini panels, not IV-matched |
 | 316 stainless containers + graphite foil | Free-standing 1 cm slabs, no container, no foil |
 | Sand thermal-mass control | Rice bran wax slab |
-| Sensor at the centre of the PCM-backed area | Sensor below the slab's lower edge |
+| Sensor at the centre of the PCM-backed area | Sensor between panel and slab, same spot on all four |
 | Treatments swapped between panels daily | Whole stations rotated; slabs stay on their panel |
 | 2 all-bare days first | One bare calibration run (late afternoon) |
 | ≥ 5 clear days + 2 nights | 3 slab days, from midday or afternoon; Day 3 past sunset; no pre-dawn |
