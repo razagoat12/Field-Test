@@ -70,7 +70,7 @@ flowchart LR
 ```
 
 - **No container.** Slabs (**14 × 7 × 1 cm**, measured after the test; earlier notes said
-  ≈ 2 cm) sit between panel (**3 × 5 in**, 7.6 × 12.7 cm) and board, notched round the lead
+  ≈ 2 cm) sit between panel (**1 W, 3 × 5 in**, 7.6 × 12.7 cm) and board, notched round the lead
   joints, covering ≈ 92 % of the panel back.
 - **Every panel insulated the same way**, bare included, so the bare panel is not cooled by
   air the others can't reach.

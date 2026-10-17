@@ -10,8 +10,8 @@ section 7.
 ## 1. Site and setup
 
 - **Site:** a roof in **Al Khobar, Saudi Arabia**, panels against a wall facing south.
-- **Panels:** four frameless **mini mono-crystalline panels** of one model, **3 × 5 in** (7.6 × 12.7 cm), not IV-matched.
-  ⚠️ Rating, V<sub>oc</sub>, I<sub>sc</sub> and size from the label: *to record*.
+- **Panels:** four frameless **mini mono-crystalline panels** of one model, **1 W, 3 × 5 in** (7.6 × 12.7 cm), not IV-matched.
+
 - **Mounting (roof-integrated case):** each panel is taped to its own **2 cm thermocol
   board**. The board's bottom edge rests on a box and its top edge leans on the wall, so the
   board sets the tilt (≈ 35°). The back of every panel is insulated, which copies a
