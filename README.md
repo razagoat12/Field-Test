@@ -119,7 +119,7 @@ reading is plotted; numbers come from [`analysis/field_results.txt`](analysis/fi
 **Pre-registered main number:** each slab panel's daily peak subtracted from the bare panel's
 peak that day. Positive = cooler than bare.
 
-| | Day 1 | Day 2 | Day 3 | Mean ± SD (n = 3) | v2 prediction | Mass over ≈ 72 h |
+| | Day 1 | Day 2 | Day 3 | Mean ± SD (n = 3) | v2 prediction | Mass over 3 days |
 |---|---:|---:|---:|---:|---:|---:|
 | Bare peak | 63.6 °C | 69.9 °C | 76.1 °C | | 59.2 °C | |
 | **RBW alone** | +6.2 | +3.2 | +10.7 | **+6.7 ± 3.7** | +0.8 | 98 → 98 g, **0 %** |
@@ -130,7 +130,7 @@ peak that day. Positive = cooler than bare.
 **What it shows.**
 
 1. **A 1 cm slab took ≈ 6.5 °C off the peak of a roof-integrated panel**, more on hotter
-   days (11.9 °C on Day 3, when bare reached 76 °C). **H7 (≥ 2 °C) is met on the mean**, and the
+   days (11.9 °C on Day 3, when bare reached 76 °C). **H7 (≥ 2 °C) is met on the mean** (the pre-registered criterion), and the
    cooling is three times the model's prediction. With three days the 95 % CI still includes
    zero: consistent, not statistically proven.
 2. **Most of it is thermal mass.** Plain wax did as well as C40 at peak.
@@ -140,7 +140,7 @@ peak that day. Positive = cooler than bare.
    the acid freezing and giving its heat back (post-hoc analysis).
 4. **Graphite failed twice.** Warmer than C40 at peak every day (by 1.7–3.8 °C), and the slab
    collapsed and lost **11 %** of its mass.
-5. **C40 held together in service.** 2.1 % mass loss over ≈ 72 h on panels reaching 64–76 °C,
+5. **C40 held together in service.** 2.1 % mass loss over three days outdoors (≈ 72 h) on panels reaching 64–76 °C,
    at the 2 % limit; plain wax lost nothing, so the loss is the acid.
 6. **Evening release.** After sunset the slab panels stay 0.6–1.4 °C warmer than bare.
 
