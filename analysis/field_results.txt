@@ -1,5 +1,6 @@
 FIELD TEST, AL KHOBAR - back-surface temperature, ice-corrected (deg C)
-Positive dT = the SECOND station in the pair runs cooler. Weather = Open-Meteo model data.
+Slabs 14 x 7 x 1 cm. Positive dT = the SECOND station in the pair runs cooler.
+Weather = Open-Meteo model data.
 
 ========================================================================
 DAY 1: start 13:30, 6514 readings, 3.62 h
@@ -24,8 +25,6 @@ DAY 1: start 13:30, 6514 readings, 3.62 h
   RBW - C40        mean dT  -2.36   peak dT  -0.10
   C40 - C40+G      mean dT  -1.32   peak dT  -1.66
 
-  minutes above 60 / 65 / 68 C: bare 15/0/0, RBW 0/0/0, C40 0/0/0, C40+G 0/0/0
-
 ========================================================================
 DAY 2: start 11:47, 7417 readings, 4.12 h
 
@@ -49,14 +48,71 @@ DAY 2: start 11:47, 7417 readings, 4.12 h
   RBW - C40        mean dT  +2.14   peak dT  -1.66
   C40 - C40+G      mean dT  -7.31   peak dT  -1.78
 
-  minutes above 60 / 65 / 68 C: bare 165/111/35, RBW 177/47/0, C40 136/87/4, C40+G 215/182/105
+========================================================================
+DAY 3: start 11:45, 12725 readings, 7.07 h
+
+  FINDINGS - first 90 min (11:45-13:15)
+  weather: sun 784 W/m2, air 40.9 C, wind 4.4 km/h, cloud 0 % max
+  peaks: bare 76.1, RBW 62.7, C40 64.2, C40+G 64.1
+  mean rise above air: bare 28.4, RBW 18.6, C40 19.8, C40+G 20.5
+  bare - C40       mean dT  +8.65   peak dT +11.89
+  bare - RBW       mean dT  +9.82   peak dT +13.37
+  bare - C40+G     mean dT  +7.87   peak dT +11.99
+  RBW - C40        mean dT  -1.18   peak dT  -1.47
+  C40 - C40+G      mean dT  -0.78   peak dT  +0.09
+
+  FULL RUN - limitation, shown for transparency
+  weather: sun 369 W/m2, air 36.9 C, wind 10.3 km/h, cloud 7 % max
+  peaks: bare 76.1, RBW 65.4, C40 64.2, C40+G 68.0
+  mean rise above air: bare 11.8, RBW 11.5, C40 7.4, C40+G 13.5
+  bare - C40       mean dT  +4.32   peak dT +11.89
+  bare - RBW       mean dT  +0.27   peak dT +10.68
+  bare - C40+G     mean dT  -1.70   peak dT  +8.11
+  RBW - C40        mean dT  +4.05   peak dT  +1.21
+  C40 - C40+G      mean dT  -6.02   peak dT  -3.78
+
+  Day 3: all stations in the sun all day before logging. C40 drops ~6 C at ~80 min
+  while the others keep heating, and stays ~8 C below RBW until ~180 min; the row
+  was checked every 30 min and C40 was not shaded. Light smudge of composite near
+  the C40 sensor afterwards, not stuck. All readings kept.
+  last 30 min (after sunset): bare 29.7, RBW 30.9, C40 30.3, C40+G 31.1
 
 ========================================================================
-MATCHED SUNLIGHT - sun >= 600 W/m2, both days pooled, Day 2 shadow excluded
+PRE-REGISTERED MAIN NUMBER: per-day peak minus partner's peak, same day; mean, SD,
+t-based 95 % CI (n = days). Last 5 min of each day excluded (packing up).
+  bare - C40       days  +6.1  +1.6 +11.9   mean +6.54  SD 5.17  95% CI [ -6.3, +19.4]
+  bare - RBW       days  +6.2  +3.2 +10.7   mean +6.72  SD 3.74  95% CI [ -2.6, +16.0]
+  bare - C40+G     days  +4.5  -0.2  +8.1   mean +4.13  SD 4.17  95% CI [ -6.2, +14.5]
+  RBW - C40        days  -0.1  -1.7  +1.2   mean -0.18  SD 1.44  95% CI [ -3.8,  +3.4]
+  C40 - C40+G      days  -1.7  -1.8  -3.8   mean -2.41  SD 1.19  95% CI [ -5.4,  +0.6]
+
+========================================================================
+EVENING COOLING RATE (C/h) at the same panel temperature after the row loses sun
+(post hoc; 10-min running mean). Latent release = slow cooling near 43-44 C.
+  Day 2:  50 C  46 C  44 C  42 C  40 C
+    bare    31.2   15.9   14.1   23.7   26.6
+    RBW     15.4   15.0   50.0      -      -
+    C40     30.3   14.2    5.9    4.5      -
+    C40+G   54.3      -      -      -      -
+  Day 3:  50 C  46 C  44 C  42 C  40 C
+    bare    23.6   18.6   10.2   12.4   15.5
+    RBW     18.3   12.1   11.1    5.7    5.8
+    C40        -   18.2    8.7    6.1    8.4
+    C40+G   17.6   15.1   10.9    6.0    5.3
+
+========================================================================
+MATCHED SUNLIGHT - sun >= 600 W/m2, all days pooled, shadow periods excluded
   Day 1: 766 readings
   Day 2: 2849 readings
-  bare - C40       mean dT  +2.37
-  bare - RBW       mean dT  +3.12
-  bare - C40+G     mean dT  +1.45
-  RBW - C40        mean dT  -0.76
-  C40 - C40+G      mean dT  -0.92
+  Day 3: 4111 readings
+  bare - C40       mean dT  +5.97
+  bare - RBW       mean dT  +5.43
+  bare - C40+G     mean dT  +3.47
+  RBW - C40        mean dT  +0.55
+  C40 - C40+G      mean dT  -2.50
+
+========================================================================
+SLAB MASS over the campaign (~72 h in the sun; kitchen scale, 1 g)
+  RBW    98 -> 98 g   loss  0.0 %  (H7d limit 2 %)
+  C40    96 -> 94 g   loss  2.1 %  (H7d limit 2 %)
+  C40+G  100 -> 89 g   loss 11.0 %  (H7d limit 2 %)

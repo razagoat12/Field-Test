@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-field%20days%201%E2%80%932%20done-eda100?style=for-the-badge" alt="Status: field days 1 and 2 done">
+  <img src="https://img.shields.io/badge/status-field%20test%20done%20(3%20days)-1baf7a?style=for-the-badge" alt="Status: field test done, 3 days">
   <img src="https://img.shields.io/badge/Arduino-Uno-00979D?style=for-the-badge&logo=arduino&logoColor=white" alt="Arduino Uno">
   <img src="https://img.shields.io/badge/Python-3-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3">
   <img src="https://img.shields.io/badge/sensors-4%C3%97%20DS18B20-2a78d6?style=for-the-badge" alt="4 DS18B20 sensors">
@@ -14,7 +14,7 @@
   <a href="#-the-project">The project</a> ·
   <a href="#-the-field-test">The field test</a> ·
   <a href="#-the-predictions">Predictions</a> ·
-  <a href="#-results-days-1-and-2">Results</a> ·
+  <a href="#-results-three-days">Results</a> ·
   <a href="#-hardware">Hardware</a> ·
   <a href="#-calibration">Calibration</a> ·
   <a href="#-run-it-yourself">Run it</a> ·
@@ -54,24 +54,23 @@ outdoor half**: hypothesis **H7**.
 
 ## 🔬 The field test
 
-Run on a roof in **Al Khobar, Saudi Arabia**, on **15 and 16 October 2026**, with a third
-day on 17 October. Full procedure and every difference from the original plan:
+Run on a roof in **Al Khobar, Saudi Arabia**, on **15, 16 and 17 October 2026**. Full procedure and every difference from the original plan:
 [`Hardware/Field Test - Run Script.md`](Hardware/Field%20Test%20-%20Run%20Script.md).
 
 | Sensor | Station | Behind the panel |
 |:---:|---|---|
 | S3 | 🅰️ **Bare** | nothing, panel on its insulation board |
-| S2 | 🅱️ **RBW alone** | 2 cm rice bran wax slab: adds mass, doesn't melt in this range |
-| S1 | 🅲 **C40 composite** | 2 cm slab, 40 wt % lauric acid / 60 wt % RBW |
-| S0 | 🅳 **C40 + graphite** | 2 cm C40 slab with ≈ 3.8 wt % graphite (higher conductivity) |
+| S2 | 🅱️ **RBW alone** | 1 cm rice bran wax slab: adds mass, doesn't melt in this range |
+| S1 | 🅲 **C40 composite** | 1 cm slab, 40 wt % lauric acid / 60 wt % RBW |
+| S0 | 🅳 **C40 + graphite** | 1 cm C40 slab with ≈ 3.8 wt % graphite (higher conductivity) |
 
 ```mermaid
 flowchart LR
-    P["Mini solar panel<br/>front to the sun"] --- S["2 cm slab<br/>(none on bare)"] --- B["2 cm thermocol board<br/>= roof-integrated back"] --- W["Box + wall<br/>set the ~35° tilt"]
+    P["Mini solar panel<br/>front to the sun"] --- S["1 cm slab, 14 × 7 cm<br/>(none on bare)"] --- B["2 cm thermocol board<br/>= roof-integrated back"] --- W["Box + wall<br/>set the ~35° tilt"]
 ```
 
-- **No container.** Slabs sit between panel and board, notched round the lead joints and
-  covering ≈ 85 % of the panel back.
+- **No container.** Slabs (**14 × 7 × 1 cm**, measured after the test; earlier notes said
+  ≈ 2 cm) sit between panel and board, notched round the lead joints.
 - **Every panel insulated the same way**, bare included, so the bare panel is not cooled by
   air the others can't reach.
 - **Sensors** are taped to each panel's back just below the slab's lower edge, at the same
@@ -97,121 +96,74 @@ results are tested against. Two versions exist, both recorded before any field d
 
 The field result is compared against **v2**, which describes the design actually run.
 v1 is kept as the record of what was predicted first. Both use a synthetic October
-climate of **15–29 °C**; Al Khobar was **33–39 °C**, so absolute temperatures ran higher than
-either model.
+climate of **15–29 °C**; Al Khobar was **33–41 °C**, so absolute temperatures ran higher than
+either model. Both assume **2 cm** slabs; the slabs turned out to be **1 cm**, for which the same
+v2 model gives C40 **+0.8 °C** (reference only, not a new prediction).
 
-## 📈 Results, days 1 and 2
+## 📈 Results, three days
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/field_days_dark.png">
-  <img src="assets/field_days_light.png" alt="Two panels of line charts. Day 1, 15 October, 13:30 to 17:07: the four stations start between 50 and 63 °C and fall to 31 to 35 °C; after about 15:30 the slab stations stay warmer than bare. Day 2, 16 October, 11:47 to 15:54: all four run between 62 and 70 °C for the first 90 minutes, then drop at different times as a shadow crosses the row while the graphite station stays near 69 °C. Lower panels show modelled sunlight falling smoothly and wind rising at about 13:00.">
+  <img src="assets/field_days_light.png" alt="Three panels of line charts, one per day. Day 1, 15 October from 13:30: stations between 50 and 63 °C falling to 31 to 35 °C, slab panels warmer than bare in the evening. Day 2, 16 October from 11:47: all four between 62 and 70 °C for 90 minutes, then a shadow. Day 3, 17 October from 11:45 to 18:49: bare starts near 76 °C while the slab panels sit at 58 to 64 °C; C40 drops to about 54 °C from 13:05 while the others climb to 62 to 68 °C; all fall after about 14:45 and the slab panels stay warmer than bare after sunset. Lower panels show modelled sunlight and wind.">
 </picture>
 
-Ice-corrected temperatures, weather from Open-Meteo (model data, not measured on site).
-Every reading is plotted; numbers come from [`analysis/field_results.txt`](analysis/field_results.txt).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/field_summary_dark.png">
+  <img src="assets/field_summary_light.png" alt="Three charts. (a) Bars of daily peak cooling against bare for RBW, C40 and C40 plus graphite on days 1 to 3: RBW 6.2, 3.2, 10.7 °C; C40 6.1, 1.6, 11.9 °C; C40 plus graphite 4.5, minus 0.2, 8.1 °C, with the 2 °C threshold and model predictions near 1 to 2 °C. (b) Evening cooling rate against panel temperature: C40 cools at about 5 to 7 °C per hour between 42 and 45 °C, bare at 10 to 15. (c) Slab mass loss: RBW 0 %, C40 2.1 %, C40 plus graphite 11 %, against a 2 % limit.">
+</picture>
 
-**Findings window: the first 90 minutes of each day.** Positive = the station is cooler than bare.
+Ice-corrected temperatures, weather from Open-Meteo (model data, not measured on site). Every
+reading is plotted; numbers come from [`analysis/field_results.txt`](analysis/field_results.txt).
 
-| | Day 1 (13:30–15:00) | Day 2 (11:47–13:17) | Matched sun ≥ 600 W/m², both days | v2 prediction (peak) |
-|---|---:|---:|---:|---:|
-| Weather | 543 W/m², 34.7 °C, wind 12 km/h | **771 W/m², 38.8 °C, wind 7 km/h** | 3,615 readings | |
-| **C40**, mean / peak | +0.7 / +6.1 | **+1.8 / +1.6** | **+2.4** | +1.9 |
-| RBW alone, mean / peak | +2.3 / +6.2 | +2.1 / +3.2 | +3.1 | +0.8 |
-| C40 + graphite, mean / peak | −0.8 / +4.5 | +1.0 / +0.4 | +1.5 | +2.1 to +2.2 |
-| C40 vs RBW (mean) | RBW 1.6 cooler | RBW 0.3 cooler | RBW 0.8 cooler | C40 ≈ 1.1 cooler |
+**Pre-registered main number:** each slab panel's daily peak subtracted from the bare panel's
+peak that day. Positive = cooler than bare.
+
+| | Day 1 | Day 2 | Day 3 | Mean ± SD (n = 3) | v2 prediction | Mass over ≈ 72 h |
+|---|---:|---:|---:|---:|---:|---:|
+| Bare peak | 63.6 °C | 69.9 °C | 76.1 °C | | 59.2 °C | |
+| **RBW alone** | +6.2 | +3.2 | +10.7 | **+6.7 ± 3.7** | +0.8 | 98 → 98 g, **0 %** |
+| **C40** | +6.1 | +1.6 | +11.9 | **+6.5 ± 5.2** | +1.9 | 96 → 94 g, **2.1 %** |
+| **C40 + graphite** | +4.5 | −0.2 | +8.1 | **+4.1 ± 4.2** | +2.1 | 100 → 89 g, **11 %** |
+| C40 vs RBW | −0.1 | −1.7 | +1.2 | −0.2 ± 1.4 | ≈ +1.1 | |
 
 **What it shows.**
 
-1. **Any 2 cm slab kept the roof-integrated panel ≈ 2–3 °C cooler in strong sun.** On the
-   clear day the C40 panel ran **1.6 °C** cooler at peak, close to the v2 prediction of
-   1.9 °C. **H7 (≥ 2 °C) is not met**, just below the threshold.
-2. **No extra benefit from melting could be detected.** The wax-only slab did as well as or
-   better than C40 on both days. The cooling is mostly mass and insulation.
-3. **Graphite did not help**, and the C40 + graphite slab **partly collapsed and flowed** on
-   Day 2. It spent **105 min above 68 °C** (C40: 4 min), consistent with C40 failing
-   retention at 70 °C in the lab. Whether graphite also weakens the network is untested.
-4. **Peak damping and evening release.** On Day 1 a burst of sun took the bare panel to
-   63.6 °C while the slab panels stayed near 57 °C. After ≈ 15:30 the two composite panels ran
-   2–5 °C *warmer* than bare (wax alone ≈ 1 °C) as they gave back stored heat, as the model predicts.
+1. **A 1 cm slab took ≈ 6.5 °C off the peak of a roof-integrated panel**, more on hotter
+   days (11.9 °C on Day 3, when bare reached 76 °C). **H7 (≥ 2 °C) is met on the mean**, and the
+   cooling is three times the model's prediction. With three days the 95 % CI still includes
+   zero: consistent, not statistically proven.
+2. **Most of it is thermal mass.** Plain wax did as well as C40 at peak.
+3. **Melting showed up on the hottest day and in the evening.** On Day 3, from ≈ 13:05 to
+   14:45, C40 ran **≈ 8 °C cooler than plain wax** (row checked every 30 min, not shaded). After
+   sunset C40 cooled at **4.5–5.9 °C/h at 42–44 °C** on Day 2, against 14–24 °C/h for bare:
+   the acid freezing and giving its heat back (post-hoc analysis).
+4. **Graphite failed twice.** Warmer than C40 at peak every day (by 1.7–3.8 °C), and the slab
+   collapsed and lost **11 %** of its mass.
+5. **C40 held together in service.** 2.1 % mass loss over ≈ 72 h on panels reaching 64–76 °C,
+   at the 2 % limit; plain wax lost nothing, so the loss is the acid.
+6. **Evening release.** After sunset the slab panels stay 0.6–1.4 °C warmer than bare.
+
+<table>
+<tr>
+<td width="50%"><img src="assets/photos/stations_roof.jpg" alt="Four mini solar panels taped to white thermocol boards leaning against a wall on a roof; three have a yellow or pale green slab visible behind them, the right-hand panel is bare."></td>
+<td width="25%"><img src="assets/photos/c40_slab_94g.jpg" alt="The yellow C40 slab on a kitchen scale reading 94 g, intact, with glossy re-set patches on its surface."></td>
+<td width="25%"><img src="assets/photos/graphite_slab_89g.jpg" alt="The grey-green graphite slab, broken, on a kitchen scale reading 89 g; below it the thermocol board with a grey graphite print and composite pooled along the lower edge."></td>
+</tr>
+<tr>
+<td>The four stations on the roof, Al Khobar.</td>
+<td>C40 after the test: 94 g, intact.</td>
+<td>C40 + graphite after: 89 g, broken; melt pooled on its board.</td>
+</tr>
+</table>
 
 **Limitations, stated plainly.** ⚠️
 
-- **One panel per treatment** and **no bare calibration correction applied yet**: part of
-  the differences may be the panels or their positions, not the slabs.
-- **Day 2 after ≈ 13:22:** a shadow crosses the row (panels drop one after another while
-  sunlight falls smoothly, so not cloud). Shown, not used for findings.
-- **Day 1** started after the peak and in a gusty sea breeze (≈ 12 km/h).
-- **Two days, afternoons only, no night logging**; start times approximate.
-- **Weather is model data**, not a sensor on the roof.
-- **Sensors below the slab edge** understate the effect under the slab.
-
-## 🔌 Hardware
-
-```mermaid
-flowchart LR
-    S0["🌡️ S0"] --- BUS
-    S1["🌡️ S1"] --- BUS
-    S2["🌡️ S2"] --- BUS
-    S3["🌡️ S3"] --- BUS
-    BUS(["1-Wire bus<br/>4.7 kΩ pull-up to 5 V"]) --> U["Arduino Uno<br/>pin D2"]
-    U -- "USB, one CSV line every 2 s" --> L["💻 Laptop<br/>Serial Monitor / logger"]
-    L --> CSV[("Hardware/logs/")]
-    CSV --> A["📊 analysis/field_analysis.py"]
-```
-
-| Part | Details |
-|---|---|
-| Sensors | 4 × DS18B20 waterproof probes, 12-bit (0.0625 °C steps), one 1-Wire bus |
-| Wiring | Red → 5 V rail, black → GND rail, yellow → DATA rail → **D2**; **4.7 kΩ** from 5 V to DATA |
-| Logger | Arduino Uno over USB; Days 1–2 logged with the calibration sketch in idle mode |
-| Identity | **Use the ROM address, not the bus order.** Day 1 was first labelled by breadboard order and was wrong. [`field_station_logger`](Hardware/field_station_logger/field_station_logger.ino) reads each sensor by address and names the columns by station. |
-
-Readings of **−127** mean a sensor dropped off the bus; **85.0** is the power-on value. Both
-are excluded, never filled in.
-
-## 🎯 Calibration
-
-All four sensor tips were bundled and calibrated with a **one-point ice-bath offset**, then
-checked in room-temperature water that was **not** used to set the offsets. Full write-up:
-[`docs/calibration.md`](docs/calibration.md).
-
-| Sensor | Station | Ice mean (°C) | Offset (°C) | Room check corrected (°C) |
-|---|---|---:|---:|---:|
-| S0 | C40 + graphite | 1.606 | −1.606 | 28.375 |
-| S1 | C40 | 1.388 | −1.388 | 28.325 |
-| S2 | RBW alone | 1.863 | −1.863 | 28.263 |
-| S3 | Bare | 1.369 | −1.369 | 28.375 |
-
-**Raw spread 0.41 °C → corrected spread 0.11 °C.** Valid for comparing sensors with each
-other; agreement at 40–70 °C has not been checked, and the ice bath sat slightly above
-0 °C, so absolute temperatures carry a small bias.
-
-## 🚀 Run it yourself
-
-**Reproduce the results** (from the repo root):
-
-```bash
-pip install -r requirements.txt
-python analysis/field_analysis.py
-```
-
-**Re-run the predictions:**
-
-```bash
-python model/pcm_panel_model.py
-python model/pcm_panel_model_v1.py
-```
-
-**Log a new day.** Upload
-[`Hardware/field_station_logger/field_station_logger.ino`](Hardware/field_station_logger/field_station_logger.ino)
-(set `MOVE_EVERY_MIN` to 15 for a calibration run, 0 for a slab day), then either copy the
-Serial Monitor output, or close it and run:
-
-```bash
-python Hardware/field_logger_pc.py --move-every 15
-```
-
-That stamps every line with the laptop's clock and lets you type `m` + Enter after each move.
+- **One panel per treatment, three days**, and **no bare calibration correction applied yet**:
+  part of a difference may be the panels themselves.
+- **Shadows:** Day 2 from ≈ 13:22, Day 3 from ≈ 14:45. Shown, not used for findings.
+- **Day 1** started after the peak, in a gusty sea breeze.
+- **Weather is model data**; **sensors sit below the slab edge**; mass on a **1 g scale**.
+- **Slabs were 1 cm**, not the 2 cm the prediction assumed; **mini panels**, not full-size.
 
 ### Data format
 
@@ -229,7 +181,7 @@ edited.
 ```text
 Field-Test/
 ├── README.md
-├── assets/                         banner and figures
+├── assets/                         banner and figures (light + dark)
 ├── analysis/
 │   ├── field_analysis.py           ★ every number and figure in the README
 │   └── field_results.txt           its output
@@ -254,10 +206,9 @@ Field-Test/
 
 - [x] Sensors wired; calibration with held-out room check (0.11 °C spread)
 - [x] Sensor-to-station mapping confirmed by finger test (16 Oct)
-- [x] Field Day 1 (15 Oct) and Day 2 (16 Oct) logged, analysed with weather
-- [ ] Field Day 3 (17 Oct)
+- [x] Field Days 1–3 (15–17 Oct) logged and analysed with weather
+- [x] Slab size (14 × 7 × 1 cm) and masses before and after
 - [ ] Bare calibration run analysed and applied as a per-panel correction
-- [ ] Slab masses before and after; photos of the collapsed graphite slab
 - [ ] Oven test: C40 vs C40 + graphite side by side at 60 and 70 °C
 
 ## 👥 Team
