@@ -180,11 +180,16 @@ Values are **raw**; add the ice offsets before comparing sensors. Lines starting
 are metadata. The `*_raw_serial.txt` files are exact Serial Monitor copies and are never
 edited.
 
+## 📄 The paper
+
+The full paper draft is in [`paper/`](paper/): [PDF](paper/RBW-Lauric-Acid-PCM-paper-draft.pdf), plus the chapter sources in Markdown.
+
 ## 🗂️ Repository map
 
 ```text
 Field-Test/
 ├── README.md
+├── paper/                          ★ full paper draft: PDF + chapter sources (Markdown)
 ├── assets/                         banner and figures (light + dark)
 ├── analysis/
 │   ├── field_analysis.py           ★ every number and figure in the README
